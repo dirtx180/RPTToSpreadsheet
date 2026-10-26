@@ -1,0 +1,1263 @@
+﻿Info=193,9,818,924,1001B47H
+Name="MATOPT"
+Prompt="Matter Format Options"
+UsAc=7FFFH
+UsPm=3A56H
+UsCh=0
+Script="Public gstrClientCode As String\r\nPublic gstrClientName As String\r\nPublic gstrMatterCode As String\r\nPublic gstrMatterName As String\r\nPublic gstrCmdExe As String\r\nPublic gstrCmdParm1 As String\r\nPublic gstrBillMUno As String\r\nPublic gbAccessDiscount As Boolean\r\n\r\nFunction FindSelectedListItem(ByVal hList As List, ByVal strSearchItem As String, ByVal strColumnTitle As String) As Integer\r\n  Dim nLoop As Integer\r\n  Dim nFoundLocation As Integer\r\n  Dim strSelectedItem As String\r\n\r\n  ' Initialise variables.\r\n  nFoundLocation = 0\r\n\r\n  ' Loop through list items.\r\n  For nLoop = 1 To hList.Count\r\n    ' Determine if current item is selected.\r\n    If hList.Selected(nLoop) Then\r\n      ' Obtain value of selected row in the specified column.\r\n      strSelectedItem = \"\"\r\n      strSelectedItem = Trim$(hList.RowItem(nLoop, hList.FindColumn(strColumnTitle)))\r\n\r\n      ' Determine if selected item is same as the search item.\r\n      If strSelectedItem = strSearchItem Then\r\n        ' Match found, hold the row.\r\n        nFoundLocation = nLoop\r\n\r\n        ' Stop further processing.\r\n        Exit For\r\n      End If  ' Match Check\r\n    End If ' Selected Row Check\r\n  Next nLoop\r\n\r\n  ' Return value.\r\n  FindSelectedListItem = nFoundLocation  \r\nEnd Function\r\n\r\nFunction FindListItem(ByVal hList As List, ByVal strSearchItem As String, ByVal strColumnTitle As String) As Integer\r\n  Dim nLoop As Integer\r\n  Dim nFoundLocation As Integer\r\n  Dim strSelectedItem As String\r\n\r\n  ' Initialise variables.\r\n  nFoundLocation = 0\r\n\r\n  ' Loop through list items.\r\n  For nLoop = 1 To hList.Count\r\n    ' Obtain value of selected row in the specified column.\r\n    strSelectedItem = \"\"\r\n    strSelectedItem = Trim$(hList.RowItem(nLoop, hList.FindColumn(strColumnTitle)))\r\n\r\n    ' Determine if selected item is same as the search item.\r\n    If strSelectedItem = strSearchItem Then\r\n      ' Match found, hold the row.\r\n      nFoundLocation = nLoop\r\n\r\n      ' Stop further processing.\r\n      Exit For\r\n    End If  ' Match Check\r\n  Next nLoop\r\n\r\n  ' Return value.\r\n  FindListItem = nFoundLocation  \r\nEnd Function\r\n\r\nFunction MakeIncludeString(ByVal hList As List, ByVal strArea As String) As String\r\n  Const sDELIMITER_COMMA As String = \",\"\r\n\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n  Const sSECTION_DISB_DETAIL_DISB_ONLY As String = \"DDDI\"\r\n\r\n  Const sCOLUMN_TITLE_ROW_UNO As String = \"Row Uno\"\r\n  Const sCOLUMN_TITLE_DD_NAME As String = \"DD Name\"\r\n  Const sCOLUMN_TITLE_TIME_FIELD As String = \"Time Field\"\r\n  Const sCOLUMN_TITLE_DISB_FIELD As String = \"Disbursement Field\"\r\n  Const sCOLUMN_TITLE_DISB_CODE As String = \"Disbursement Type\"\r\n  Const sCOLUMN_TITLE_DESCRIPTION As String = \"Description\"\r\n  Const sCOLUMN_TITLE_MIN_SIZE As String = \"Min Size\"\r\n  Const sCOLUMN_TITLE_MAX_SIZE As String = \"Max Size\"\r\n\r\n  Dim nRows As Long\r\n  Dim nLoop As Long\r\n\r\n  Dim strRowUno As String\r\n  Dim strDDName As String\r\n  Dim strField As String\r\n  Dim strDesc As String\r\n  DIm strMinSize As String\r\n  Dim strMaxSize As String\r\n\r\n  Dim strData As String\r\n\r\n  ' Obtain number of rows in source list. \r\n  nRows = hList.Count\r\n\r\n  strData = \"\"\r\n\r\n  ' Determine if there are rows in the list.\r\n  If nRows > 0 Then\r\n    ' Loop through list.\r\n    For nLoop = 1 To nRows\r\n      ' Determine if using disbursement detail disbursement code list.\r\n      If strArea <> sSECTION_DISB_DETAIL_DISB_ONLY Then\r\n        ' Not disbursement code list.\r\n        ' Obtain information from selected row.\r\n        strRowUno = hList.RowItem(nLoop, hList.FindColumn(sCOLUMN_TITLE_ROW_UNO))\r\n        strDDName = hList.RowItem(nLoop, hList.FindColumn(sCOLUMN_TITLE_DD_NAME))\r\n\r\n        ' Determine the section area.\r\n        Select Case strArea\r\n          Case sSECTION_TIME_SUMMARY, sSECTION_TIME_DETAIL\r\n            strField = hList.RowItem(nLoop, hList.FindColumn(sCOLUMN_TITLE_TIME_FIELD))\r\n          Case sSECTION_DISB_SUMMARY, sSECTION_DISB_DETAIL\r\n            strField = hList.RowItem(nLoop, hList.FindColumn(sCOLUMN_TITLE_DISB_FIELD))\r\n        End Select\r\n\r\n        strDesc = hList.RowItem(nLoop, hList.FindColumn(sCOLUMN_TITLE_DESCRIPTION))\r\n        strMinSize = hList.RowItem(nLoop, hList.FindColumn(sCOLUMN_TITLE_MIN_SIZE))\r\n        strMaxSize = hList.RowItem(nLoop, hList.FindColumn(sCOLUMN_TITLE_MAX_SIZE))\r\n\r\n        ' Build row data.\r\n        strData = strData + strDDName + sDELIMITER_COMMA\r\n      Else\r\n        ' Disbursement code list.\r\n        strDDName = hList.RowItem(nLoop, hList.FindColumn(sCOLUMN_TITLE_DISB_CODE))\r\n\r\n        ' Build row data.\r\n        strData = strData + strDDName + sDELIMITER_COMMA\r\n      End If\r\n    Next nLoop\r\n\r\n    ' Remove trailing delimiter.\r\n    strData = Left$(strData, Len(strData) - 1)\r\n  End If ' Row Check.\r\n\r\n  ' Return data.\r\n  MakeIncludeString = strData\r\nEnd Function\r\n\r\nFunction MakeMultiString(ByVal strCode As String, ByVal strDelimiter As String, ByVal strEnclosedChar As String) As String\r\n  Dim nPos As Integer\r\n  Dim nStart As Integer\r\n  Dim strTemp As String\r\n\r\n  ' Initialise variables.\r\n  nPos = 0\r\n  strTemp = \"\"\r\n\r\n  strCode = Trim$(strCode)\r\n\r\n  ' Find initial position of delimiter.\r\n  nPos = InStr(strCode, strDelimiter)\r\n\r\n  ' Determine if find initial delimiter.\r\n  If nPos = 0 Then\r\n    ' Single item already selected.\r\n    strTemp = strEnclosedChar + strCode + strEnclosedChar\r\n  Else\r\n    While nPos <> 0\r\n      ' Build string.\r\n      strTemp = strTemp + strEnclosedChar + Left$(strCode, nPos - 1) + strEnclosedChar + strDelimiter\r\n      \r\n      ' Rebuild string.\r\n      strCode = Trim$(Mid$(strCode, nPos + 1, Len(strCode)))\r\n\r\n      ' Find subsequent position of delimiter.\r\n      nPos = InStr(strCode, strDelimiter)\r\n    WEnd\r\n\r\n    ' Enclose last item.\r\n    strTemp = strTemp + strEnclosedChar + strCode + strEnclosedChar\r\n  End If\r\n\r\n  ' Return the string.\r\n  MakeMultiString = strTemp  \r\nEnd Function\r\n\r\nSub ChangeListItemPosition(ByVal hList As List, ByVal strItem As String, ByVal strColumnTitle As String, ByVal strPositionType As String, ByVal nPosition As Integer)\r\n  Const sPOSITION_TYPE_FIRST As String = \"F\"\r\n  Const sPOSITION_TYPE_LAST As String = \"L\"\r\n  Const sPOSITION_TYPE_SPECIFIC As String = \"S\"\r\nEnd Sub\r\n\r\nSub ProcessGeneralSection(ByVal hField As Fields)\r\n  Const sFROM_CLIENT As String = \"TBMCLNT\"\r\n\r\n  hField(\"_HSF_CHK_GN_IN_ELH\").Visible = TRUE\r\n  hField(\"_HSF_CHK_GN_EX_ELH\").Visible = TRUE\r\n  hField(\"_HSF_CHK_GN_SEP_CH\").Visible = TRUE\r\n  hField(\"_HSF_CHK_GN_SHT_DT\").Visible = TRUE\r\n  hField(\"_HSF_CHK_GN_CST_TX\").Visible = TRUE\r\n  hField(\"_HSF_CHK_GN_EXH_RT\").Visible = TRUE\r\n  hField(\"_HSF_CHK_GN_PT_DTL\").Visible = TRUE\r\n  hField(\"_HSF_CHK_GN_PT_SUM\").Visible = TRUE\r\n  hField(\"_HSF_CHK_GN_CL_LCK\").Visible = TRUE\r\n  hField(\"_HSF_CHK_GN_DT_RNG\").Visible = TRUE\r\n  hField(\"_HSF_RB_GN_DT_OPT\").Visible = TRUE\r\n  hField(\"_HSF_GN_LANG_CODE\").Visible = TRUE\r\n  hField(\"_HSF_GN_LANG_DESC\").Visible = TRUE\r\n  hField(\"_HSF_GN_PCT_DISC\").Visible = TRUE\r\n  hField(\"_HSF_CHK_GN_INC_MC\").Visible = TRUE\r\n  hField(\"_HSF_RB_GN_MC_OP\").Visible = TRUE\r\n  hField(\"_HSF_CHK_GN_BOC\").Visible = TRUE\r\n  hField(\"_HSF_EXC_GBL_FEES\").Visible = TRUE\r\n  ' Determine if date range is ticked.\r\n  If hField(\"_HSF_CHK_GN_DT_RNG\").Value = hField(\"_HSF_CHK_GN_DT_RNG\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_RB_GN_DT_OPT\").Enabled = TRUE\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_RB_GN_DT_OPT\").Enabled = FALSE\r\n  End If\r\n\r\n  ' Groupbox.\r\n  hField(\"_HSF_BX_GN_ELH\").Visible = TRUE\r\n  hField(\"_HSF_BX_GN_PT\").Visible = TRUE\r\n  hField(\"_HSF_BX_GN_DT_RNG\").Visible = TRUE\r\n  hField(\"_HSF_BX_GN_GS\").Visible = TRUE\r\n  hField(\"_HSF_BX_GN_CLS\").Visible = TRUE\r\n  hField(\"_HSF_BX_GN_LNS\").Visible = TRUE\r\n  hField(\"_HSF_BX_GN_CP_MA\").Visible = TRUE\r\n  hField(\"_HSF_BX_GN_MC\").Visible = TRUE\r\n\r\n  ' Apply To All Matters Button.\r\n  hField(\"_HSF_BTTN_GN_AP_MA\").Visible = TRUE\r\n\r\n  ' Copy Option Settings.\r\n  hField(\"_HSF_GN_CP_MA\").Visible = TRUE\r\n  hField(\"_HSF_BTTN_GN_CP_MA\").Visible = TRUE\r\n\r\n  ' Determine if include matter cost to date is ticked.\r\n  If hField(\"_HSF_CHK_GN_INC_MC\").Value = hField(\"_HSF_CHK_GN_INC_MC\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_RB_GN_MC_OP\").Enabled = TRUE\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_RB_GN_MC_OP\").Enabled = FALSE\r\n  End If\r\n\r\n  ' Determine where the screen is launched from.\r\n  If gstrCmdExe = sFROM_CLIENT Then\r\n    ' Launched via client, thus display the Client Settings details.\r\n    hField(\"_HSF_BX_GN_CLS\").Visible = TRUE\r\n    hField(\"_HSF_BTTN_GN_AP_MA\").Visible = TRUE\r\n    hField(\"_HSF_CHK_GN_CST_TX\").Visible = TRUE\r\n    hField(\"_HSF_CHK_GN_CL_LCK\").Visible = TRUE\r\n\r\n    ' Disable Copy Option items.\r\n    hField(\"_HSF_GN_CP_MA\").Enabled = FALSE\r\n    hField(\"_HSF_BTTN_GN_CP_MA\").Enabled = FALSE\r\n  Else\r\n    ' Not launched via client, thus hide the Client Settings details.\r\n    hField(\"_HSF_BX_GN_CLS\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_GN_AP_MA\").Visible = FALSE\r\n    hField(\"_HSF_CHK_GN_CST_TX\").Visible = FALSE\r\n    hField(\"_HSF_CHK_GN_CL_LCK\").Visible = FALSE\r\n\r\n    ' Enable Copy Option items.\r\n    hField(\"_HSF_GN_CP_MA\").Enabled = TRUE\r\n    hField(\"_HSF_BTTN_GN_CP_MA\").Enabled = TRUE\r\n  End If\r\nEnd Sub\r\n\r\nSub ProcessCoverLetterSection(ByVal hField As Fields)\r\n  Const sCONFIDENTIALITY_OTHER As String = \"CO\"\r\n  Const sDUAL_SIGNATURE_OTHER As String = \"OT\"\r\n\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_CL_INCLDE\").Value = hField(\"_HSF_CHK_CL_INCLDE\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_CHK_CL_FIN_DT\").Visible = TRUE\r\n    hField(\"_HSF_CHK_CL_CNF_IN\").Visible = TRUE\r\n    hField(\"_HSF_RB_CL_CNF_TYP\").Visible = TRUE\r\n    hField(\"_HSF_CL_CNF_OTH\").Visible = TRUE\r\n    hField(\"_HSF_CHK_CL_DS\").Visible = TRUE\r\n    hField(\"_HSF_RB_CL_DS_TYPE\").Visible = TRUE\r\n    hField(\"_HSF_CL_DS_OT_EM_C\").Visible = TRUE\r\n    hField(\"_HSF_CL_DS_OT_EM_N\").Visible = TRUE\r\n\r\n    ' Groupbox.\r\n    hField(\"_HSF_BX_CL_GS\").Visible = TRUE\r\n    hField(\"_HSF_BX_CL_CF\").Visible = TRUE\r\n    hField(\"_HSF_BX_CL_DS\").Visible = TRUE\r\n    hField(\"_HSF_BX_CL_DS_OTH\").Visible = TRUE\r\n\r\n    ' Determine if include confidentiality is ticked.\r\n    If hField(\"_HSF_CHK_CL_CNF_IN\").Value = hField(\"_HSF_CHK_CL_CNF_IN\").Checkbox.OnValue Then\r\n      ' Value is ticked.\r\n      hField(\"_HSF_RB_CL_CNF_TYP\").Enabled = TRUE\r\n\r\n      ' Determine if confidentiality other type is selected.\r\n      If hField(\"_HSF_RB_CL_CNF_TYP\").Value = sCONFIDENTIALITY_OTHER Then\r\n        ' Other selected.\r\n        hField(\"_HSF_CL_CNF_OTH\").Enabled = TRUE\r\n      Else\r\n        ' Other not selected.\r\n        hField(\"_HSF_CL_CNF_OTH\").Enabled = FALSE\r\n      End If\r\n    Else\r\n      ' Value is not ticked.\r\n      hField(\"_HSF_RB_CL_CNF_TYP\").Enabled = FALSE\r\n      hField(\"_HSF_CL_CNF_OTH\").Enabled = FALSE\r\n    End If\r\n\r\n\t' Determine if dual signature is ticked.\r\n    If hField(\"_HSF_CHK_CL_DS\").Value = hField(\"_HSF_CHK_CL_DS\").Checkbox.OnValue Then\r\n      ' Value is ticked.\r\n      hField(\"_HSF_RB_CL_DS_TYPE\").Enabled = TRUE\r\n      hField(\"_HSF_CL_DS_OT_EM_C\").Enabled = TRUE\r\n      hField(\"_HSF_CL_DS_OT_EM_N\").Enabled = TRUE\r\n    Else\r\n      ' Value is not ticked.\r\n      hField(\"_HSF_RB_CL_DS_TYPE\").Enabled = FALSE\r\n      hField(\"_HSF_CL_DS_OT_EM_C\").Enabled = FALSE\r\n      hField(\"_HSF_CL_DS_OT_EM_N\").Enabled = FALSE\r\n    End If\r\n\r\n    ' Determine if dual signature other type is selected.\r\n    If hField(\"_HSF_RB_CL_DS_TYPE\").Value = sDUAL_SIGNATURE_OTHER Then\r\n      ' Other selected.\r\n      hField(\"_HSF_CL_DS_OT_EM_C\").Enabled = TRUE\r\n      hField(\"_HSF_CL_DS_OT_EM_N\").Enabled = TRUE\r\n    Else\r\n      ' Other not selected.\r\n      hField(\"_HSF_CL_DS_OT_EM_C\").Enabled = FALSE\r\n      hField(\"_HSF_CL_DS_OT_EM_N\").Enabled = FALSE\r\n    End If\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_CHK_CL_FIN_DT\").Visible = FALSE\r\n    hField(\"_HSF_CHK_CL_CNF_IN\").Visible = FALSE\r\n    hField(\"_HSF_RB_CL_CNF_TYP\").Visible = FALSE\r\n    hField(\"_HSF_CL_CNF_OTH\").Visible = FALSE\r\n    hField(\"_HSF_CHK_CL_DS\").Visible = FALSE\r\n    hField(\"_HSF_RB_CL_DS_TYPE\").Visible = FALSE\r\n    hField(\"_HSF_CL_DS_OT_EM_C\").Visible = FALSE\r\n    hField(\"_HSF_CL_DS_OT_EM_N\").Visible = FALSE\r\n\r\n    hField(\"_HSF_BX_CL_GS\").Visible = FALSE\r\n    hField(\"_HSF_BX_CL_CF\").Visible = FALSE\r\n    hField(\"_HSF_BX_CL_DS\").Visible = FALSE\r\n    hField(\"_HSF_BX_CL_DS_OTH\").Visible = FALSE\r\n  End If\r\nEnd Sub\r\n\r\nSub ProcessTimeSummarySection(ByVal hField As Fields)\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_TS_INCLDE\").Value = hField(\"_HSF_CHK_TS_INCLDE\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_CHK_TS_SRT_RK\").Visible = TRUE\r\n    hField(\"_HSF_CHK_TS_SRT_OD\").Visible = TRUE\r\n    hField(\"_HSF_TS_LIST_ITEM\").Visible = TRUE\r\n    hField(\"_HSF_CHK_TS_AVG_RT\").Visible = TRUE\r\n    hField(\"_HSF_CHK_TS_PA\").Visible = TRUE\r\n    hField(\"_HSF_CHK_TS_ANL_PA\").Visible = TRUE\r\n    hField(\"_HSF_LST_TS_AVAIL\").Visible = TRUE\r\n    hField(\"_HSF_LST_TS_INCL\").Visible = TRUE\r\n\r\n    ' Display add and remove section buttons.\r\n    hField(\"_HSF_BTTN_TS_ADD\").Visible = TRUE\r\n    hField(\"_HSF_BTTN_TS_DEL\").Visible = TRUE\r\n    \r\n    ' Display Available and Included text.\r\n    hField(\"_HSF_TXT_AVAIL\").Visible = TRUE\r\n    hField(\"_HSF_TXT_INCL\").Visible = TRUE\r\n\r\n    ' Groupbox.\r\n    hField(\"_HSF_BX_GRPING_ORD\").Visible = TRUE\r\n    hField(\"_HSF_BX_PL\").Visible = TRUE\r\n  \r\n    ' Determine if summarise paralegal options are ticked.\r\n    If ( hField(\"_HSF_CHK_TS_PA\").Value = hField(\"_HSF_CHK_TS_PA\").Checkbox.OnValue Or hField(\"_HSF_CHK_TS_ANL_PA\").Value = hField(\"_HSF_CHK_TS_ANL_PA\").Checkbox.OnValue) Then\r\n      ' Value is ticked.\r\n      hField(\"_HSF_CHK_TS_AVG_RT\").Enabled = TRUE\r\n    Else\r\n      ' Value is not ticked.\r\n      hField(\"_HSF_CHK_TS_AVG_RT\").Enabled = FALSE\r\n    End If\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_CHK_TS_SRT_RK\").Visible = FALSE\r\n    hField(\"_HSF_CHK_TS_SRT_OD\").Visible = FALSE\r\n    hField(\"_HSF_TS_LIST_ITEM\").Visible = FALSE\r\n    hField(\"_HSF_CHK_TS_AVG_RT\").Visible = FALSE\r\n    hField(\"_HSF_CHK_TS_PA\").Visible = FALSE\r\n    hField(\"_HSF_CHK_TS_ANL_PA\").Visible = FALSE\r\n    hField(\"_HSF_LST_TS_AVAIL\").Visible = FALSE\r\n    hField(\"_HSF_LST_TS_INCL\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_TS_ADD\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_TS_DEL\").Visible = FALSE\r\n    hField(\"_HSF_TXT_AVAIL\").Visible = FALSE\r\n    hField(\"_HSF_TXT_INCL\").Visible = FALSE\r\n\r\n    hField(\"_HSF_BX_GRPING_ORD\").Visible = FALSE\r\n    hField(\"_HSF_BX_PL\").Visible = FALSE\r\n  End If\r\nEnd Sub\r\n\r\nSub ProcessTimeDetailSection(ByVal hField As Fields)\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_TD_INCLDE\").Value = hField(\"_HSF_CHK_TD_INCLDE\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_TD_LIST_ITEM\").Visible = TRUE\r\n    hField(\"_HSF_LST_TD_AVAIL\").Visible = TRUE\r\n    hField(\"_HSF_LST_TD_INCL\").Visible = TRUE\r\n\r\n    ' Display add and remove section buttons.\r\n    hField(\"_HSF_BTTN_TD_ADD\").Visible = TRUE\r\n    hField(\"_HSF_BTTN_TD_DEL\").Visible = TRUE\r\n\r\n    ' Display Available and Included text.\r\n    hField(\"_HSF_TXT_AVAIL\").Visible = TRUE\r\n    hField(\"_HSF_TXT_INCL\").Visible = TRUE\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_TD_LIST_ITEM\").Visible = FALSE\r\n    hField(\"_HSF_LST_TD_AVAIL\").Visible = FALSE\r\n    hField(\"_HSF_LST_TD_INCL\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_TD_ADD\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_TD_DEL\").Visible = FALSE\r\n    hField(\"_HSF_TXT_AVAIL\").Visible = FALSE\r\n    hField(\"_HSF_TXT_INCL\").Visible = FALSE\r\n  End If \r\nEnd Sub\r\n\r\nSub ProcessDisbSummarySection(ByVal hField As Fields)\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_DS_INCLDE\").Value = hField(\"_HSF_CHK_DS_INCLDE\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_CHK_DS_SRT_DB\").Visible = TRUE\r\n    hField(\"_HSF_DS_LIST_ITEM\").Visible = TRUE\r\n    hField(\"_HSF_LST_DS_AVAIL\").Visible = TRUE\r\n    hField(\"_HSF_LST_DS_INCL\").Visible = TRUE\r\n\r\n    ' Display add and remove section buttons.\r\n    hField(\"_HSF_BTTN_DS_ADD\").Visible = TRUE\r\n    hField(\"_HSF_BTTN_DS_DEL\").Visible = TRUE\r\n\r\n    ' Display Available and Included text.\r\n    hField(\"_HSF_TXT_AVAIL\").Visible = TRUE\r\n    hField(\"_HSF_TXT_INCL\").Visible = TRUE\r\n\r\n    ' Display Grouping Order.\r\n    hField(\"_HSF_BX_GRPING_ORD\").Visible = TRUE\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_CHK_DS_SRT_DB\").Visible = FALSE\r\n    hField(\"_HSF_DS_LIST_ITEM\").Visible = FALSE\r\n    hField(\"_HSF_LST_DS_AVAIL\").Visible = FALSE\r\n    hField(\"_HSF_LST_DS_INCL\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_DS_ADD\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_DS_DEL\").Visible = FALSE\r\n    hField(\"_HSF_TXT_AVAIL\").Visible = FALSE\r\n    hField(\"_HSF_TXT_INCL\").Visible = FALSE\r\n    hField(\"_HSF_BX_GRPING_ORD\").Visible = FALSE\r\n  End If\r\nEnd Sub\r\n\r\nSub ProcessDisbDetailSection(ByVal hField As Fields)\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_DD_INCLDE\").Value = hField(\"_HSF_CHK_DD_INCLDE\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_CHK_DD_DI_ALL\").Visible = TRUE\r\n    hField(\"_HSF_DD_ITEM_LIST\").Visible = TRUE\r\n    hField(\"_HSF_DD_LIST_DISB\").Visible = TRUE\r\n    hField(\"_HSF_LST_DD_AVAIL\").Visible = TRUE\r\n    hField(\"_HSF_LST_DD_INCL\").Visible = TRUE\r\n    hField(\"_HSF_LST_DD_DI_AVL\").Visible = TRUE\r\n    hField(\"_HSF_LST_DD_DI_INC\").Visible = TRUE\r\n\r\n    ' Display add and remove section buttons.\r\n    hField(\"_HSF_BTTN_DD_ADD\").Visible = TRUE\r\n    hField(\"_HSF_BTTN_DD_DEL\").Visible = TRUE\r\n    hField(\"_HSF_BTTN_DD_DI_AD\").Visible = TRUE\r\n    hField(\"_HSF_BTTN_DD_DI_DL\").Visible = TRUE\r\n\r\n    ' Determine if display all disbursement is ticked.\r\n    If hField(\"_HSF_CHK_DD_DI_ALL\").Value = hField(\"_HSF_CHK_DD_DI_ALL\").Checkbox.OnValue Then\r\n      ' Value is ticked.\r\n      hField(\"_HSF_LST_DD_DI_AVL\").Visible = FALSE\r\n      hField(\"_HSF_LST_DD_DI_INC\").Visible = FALSE\r\n      hField(\"_HSF_TXT_DI_AVL\").Visible = FALSE\r\n      hField(\"_HSF_TXT_DI_INC\").Visible = FALSE\r\n\r\n      hField(\"_HSF_BTTN_DD_DI_AD\").Visible = FALSE\r\n      hField(\"_HSF_BTTN_DD_DI_DL\").Visible = FALSE\r\n    Else\r\n      ' Value is not ticked.\r\n      hField(\"_HSF_LST_DD_DI_AVL\").Visible = TRUE\r\n      hField(\"_HSF_LST_DD_DI_INC\").Visible = TRUE\r\n      hField(\"_HSF_TXT_DI_AVL\").Visible = TRUE\r\n      hField(\"_HSF_TXT_DI_INC\").Visible = TRUE\r\n\r\n      hField(\"_HSF_BTTN_DD_DI_AD\").Visible = TRUE\r\n      hField(\"_HSF_BTTN_DD_DI_DL\").Visible = TRUE\r\n    End If\r\n\r\n    ' Display Available and Included text.\r\n    hField(\"_HSF_TXT_AVAIL\").Visible = TRUE\r\n    hField(\"_HSF_TXT_INCL\").Visible = TRUE\r\n  Else\r\n    hField(\"_HSF_CHK_DD_DI_ALL\").Visible = FALSE\r\n    hField(\"_HSF_DD_ITEM_LIST\").Visible = FALSE\r\n    hField(\"_HSF_DD_LIST_DISB\").Visible = FALSE\r\n    hField(\"_HSF_LST_DD_AVAIL\").Visible = FALSE\r\n    hField(\"_HSF_LST_DD_INCL\").Visible = FALSE\r\n    hField(\"_HSF_LST_DD_DI_AVL\").Visible = FALSE\r\n    hField(\"_HSF_LST_DD_DI_INC\").Visible = FALSE\r\n    hField(\"_HSF_LST_DD_DI_AVL\").Visible = FALSE\r\n    hField(\"_HSF_LST_DD_DI_INC\").Visible = FALSE\r\n    hField(\"_HSF_TXT_DI_AVL\").Visible = FALSE\r\n    hField(\"_HSF_TXT_DI_INC\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_DD_ADD\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_DD_DEL\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_DD_DI_AD\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_DD_DI_DL\").Visible = FALSE\r\n    hField(\"_HSF_TXT_AVAIL\").Visible = FALSE\r\n    hField(\"_HSF_TXT_INCL\").Visible = FALSE\r\n  End If\r\nEnd Sub\r\n\r\nSub AllocateDeallocateIncludeList(ByVal hSourceList As List, ByVal hDestinationList As List, ByVal strArea As String)\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n  Const sSECTION_DISB_DETAIL_DISB_ONLY As String = \"DDDI\"\r\n\r\n  Const sCOLUMN_TITLE_ROW_UNO As String = \"Row Uno\"\r\n  Const sCOLUMN_TITLE_DD_NAME As String = \"DD Name\"\r\n  Const sCOLUMN_TITLE_TIME_FIELD As String = \"Time Field\"\r\n  Const sCOLUMN_TITLE_DISB_FIELD As String = \"Disbursement Field\"\r\n  Const sCOLUMN_TITLE_DISB_CODE As String = \"Disbursement Type\"\r\n  Const sCOLUMN_TITLE_DESCRIPTION As String = \"Description\"\r\n  Const sCOLUMN_TITLE_MIN_SIZE As String = \"Min Size\"\r\n  Const sCOLUMN_TITLE_MAX_SIZE As String = \"Max Size\"\r\n\r\n  Dim nRows As Long\r\n  Dim nLoop As Long\r\n\r\n  Dim strRowUno As String\r\n  Dim strDDName As String\r\n  Dim strField As String\r\n  Dim strDesc As String\r\n  DIm strMinSize As String\r\n  Dim strMaxSize As String\r\n\r\n  Dim strData As String\r\n\r\n  ' Obtain number of rows in source list. \r\n  nRows = hSourceList.Count\r\n\r\n  ' Loop through source list .\r\n  For nLoop = 1 To nRows\r\n    ' Determine if current source row is selected.\r\n    If hSourceList.Selected(nLoop) Then\r\n      ' Determine if using disbursement detail disbursement code list.\r\n      If strArea <> sSECTION_DISB_DETAIL_DISB_ONLY Then\r\n        ' Not disbursement code list.\r\n        ' Obtain information from selected row.\r\n        strRowUno = hSourceList.RowItem(nLoop, hSourceList.FindColumn(sCOLUMN_TITLE_ROW_UNO))\r\n        strDDName = hSourceList.RowItem(nLoop, hSourceList.FindColumn(sCOLUMN_TITLE_DD_NAME))\r\n\r\n        ' Determine the section area.\r\n        Select Case strArea\r\n          Case sSECTION_TIME_SUMMARY, sSECTION_TIME_DETAIL\r\n            strField = hSourceList.RowItem(nLoop, hSourceList.FindColumn(sCOLUMN_TITLE_TIME_FIELD))\r\n          Case sSECTION_DISB_SUMMARY, sSECTION_DISB_DETAIL\r\n            strField = hSourceList.RowItem(nLoop, hSourceList.FindColumn(sCOLUMN_TITLE_DISB_FIELD))\r\n        End Select\r\n\r\n        strDesc = hSourceList.RowItem(nLoop, hSourceList.FindColumn(sCOLUMN_TITLE_DESCRIPTION))\r\n        strMinSize = hSourceList.RowItem(nLoop, hSourceList.FindColumn(sCOLUMN_TITLE_MIN_SIZE))\r\n        strMaxSize = hSourceList.RowItem(nLoop, hSourceList.FindColumn(sCOLUMN_TITLE_MAX_SIZE))\r\n\r\n        ' Build row data.\r\n        strData = strRowUno + ebTAB\r\n        strData = strData + strDDName + ebTAB\r\n        strData = strData + strField + ebTAB\r\n        strData = strData + strDesc + ebTAB\r\n        strData = strData + strMinSize + ebTAB\r\n        strData = strData + strMaxSize\r\n      Else\r\n        ' Disbursement code list.\r\n        strDDName = hSourceList.RowItem(nLoop, hSourceList.FindColumn(sCOLUMN_TITLE_DISB_CODE))\r\n        strDesc = hSourceList.RowItem(nLoop, hSourceList.FindColumn(sCOLUMN_TITLE_DESCRIPTION))\r\n \r\n        ' Build row data.\r\n        strData = strDDName + ebTAB\r\n        strData = strData + strDesc\r\n      End If\r\n \r\n      ' Add row to destination list.\r\n      hDestinationList.AddRow strData\r\n    End If\r\n  Next nLoop\r\n \r\n  ' Loop through source list backwards to take care of the deletion.\r\n  For nLoop = nRows To 1 Step -1 \r\n    ' Determine if current source row is selected.\r\n    If hSourceList.Selected(nLoop) Then\r\n      ' Remove the row in the source list.\r\n      hSourceList.DeleteRow nLoop\r\n    End If\r\n  Next nLoop\r\nEnd Sub\r\n\r\nSub LoadAvailable(ByVal hList As List, ByVal strArea As String, ByVal strCode As String)\r\n  Const sDELIMITER_COMMA As String = \",\"\r\n  Const sSINGLE_QUOTE As String = \"'\"\r\n\r\n  Const sSECTION_DISB_DETAIL_DISB_ONLY As String = \"DDDI\"\r\n\r\n  Dim hSQL As New SQLAccess\r\n\r\n  Dim strSQL As String\r\n  Dim strData As String\r\n\r\n  ' Determine if items already selected.\r\n  If Trim$(strCode) <> \"\" Then\r\n    ' Enclose string codes in single quotes.\r\n    strCode = MakeMultiString(strCode, sDELIMITER_COMMA, sSINGLE_QUOTE)\r\n  End If\r\n\r\n  ' AVALABLE LIST\r\n  ' Clear the listbox content.\r\n  hList.ClearList\r\n\r\n  ' Determine if disbursement code list.\r\n  If strArea <> sSECTION_DISB_DETAIL_DISB_ONLY Then\r\n    ' Not disbursement code list.\r\n    ' Obtain available items.\r\n    strSQL = \"SELECT ROW_UNO,\"\r\n    strSQL = strSQL + \" DD_NAME,\"\r\n    strSQL = strSQL + \" DISP_CODE,\"\r\n    strSQL = strSQL + \" DISP_DESC,\"\r\n    strSQL = strSQL + \" MIN_SIZE,\"\r\n    strSQL = strSQL + \" MAX_SIZE\"\r\n    strSQL = strSQL + \" FROM _HSF_HBL_INVOICE_OPTION\"\r\n    strSQL = strSQL + \" WHERE INACTIVE = 'N'\"\r\n\r\n    ' Determine if area is provided.\r\n    If Trim$(strArea) <> \"\" Then\r\n      ' Filter by area\r\n      strSQL = strSQL + \" AND AREA = '\" + UCase$(strArea) + \"'\"\r\n    End If\r\n\r\n    ' Determine if items already selected.\r\n    If Trim$(strCode) <> \"\" Then\r\n      ' Available filter.\r\n      strSQL = strSQL + \" AND DD_NAME NOT IN (\" + strCode + \")\"\r\n    End If\r\n\r\n    strSQL = strSQL + \" ORDER BY DISP_CODE\"\r\n  Else\r\n    ' Disbursement code list.\r\n    ' Obtain available items.\r\n    strSQL = \"SELECT COST_CODE,\"\r\n    strSQL = strSQL + \" COST_DESC,\"\r\n    strSQL = strSQL + \" DISBGRP_CODE\"\r\n    strSQL = strSQL + \" FROM CDL_COST\"\r\n    strSQL = strSQL + \" WHERE INACTIVE = 'N'\"\r\n\r\n    ' Determine if items already selected.\r\n    If Trim$(strCode) <> \"\" Then\r\n      ' Available filter.\r\n      strSQL = strSQL + \" AND COST_CODE NOT IN (\" + strCode + \")\"\r\n    End If\r\n\r\n    strSQL = strSQL + \" ORDER BY COST_DESC\"\r\n  End If\r\n\r\n  ' Execute SQL.\r\n  hSQL.IssueCommand strSQL\r\n  \r\n  ' Determine if any errors or no results.\r\n  If (hSQL.Status = SQLERR_NONE And hSQL.Status <> SQLERR_NOROWS) Then\r\n    ' No SQL errors and there are results returned.\r\n    ' Loop through result set. \t  \r\n    While Not(hSQL.AllRowsRead)\r\n      ' Determine if disbursement code list.\r\n      If strArea <> sSECTION_DISB_DETAIL_DISB_ONLY Then\r\n        ' Not disbursement code list.\r\n        ' Build the display data.\r\n        strData = Trim$(hSQL.Value(\"ROW_UNO\")) + ebTAB\r\n        strData = strData + Trim$(hSQL.Value(\"DD_NAME\")) + ebTAB\r\n        strData = strData + Trim$(hSQL.Value(\"DISP_CODE\")) + ebTAB\r\n        strData = strData + Trim$(hSQL.Value(\"DISP_DESC\")) + ebTAB\r\n        strData = strData + Trim$(hSQL.Value(\"MIN_SIZE\")) + ebTAB\r\n        strData = strData + Trim$(hSQL.Value(\"MAX_SIZE\"))\r\n      Else\r\n        ' Disbursement code list.\r\n        strData = Trim$(hSQL.Value(\"COST_CODE\")) + ebTAB\r\n        strData = strData + Trim$(hSQL.Value(\"COST_DESC\"))\r\n      End If\r\n\r\n      ' Add row to list box. \r\n      hList.AddRow strData\r\n\r\n      ' Increment row counter.\r\n      hSQL.Row = hSQL.Row + 1\r\n    WEnd\r\n  End If ' No SQL Errors And Rows Returned.\r\n\r\n  ' Release object handle.\r\n  Set hSQL = Nothing\r\nEnd Sub\r\n\r\nSub LoadSelected(ByVal hList As List, ByVal strArea As String, ByVal strCode As String)\r\n  Const sDELIMITER_COMMA As String = \",\"\r\n  Const sSINGLE_QUOTE As String = \"'\"\r\n\r\n  Const sSECTION_DISB_DETAIL_DISB_ONLY As String = \"DDDI\"\r\n\r\n  Dim hSQL As New SQLAccess\r\n\r\n  Dim strSQL As String\r\n  Dim strData As String\r\n  Dim strItem As String\r\n  Dim nLoop As Long\r\n\r\n  ' Determine if items already selected.\r\n  If Trim$(strCode) <> \"\" Then\r\n    ' Enclose string codes in single quotes.\r\n    strCode = MakeMultiString(strCode, sDELIMITER_COMMA, sSINGLE_QUOTE)\r\n  End If\r\n\r\n  ' Clear the listbox content.\r\n  hList.ClearList\r\n\r\n  ' Determine if any items already selected.\r\n  If Trim$(strCode) <> \"\" Then\r\n    ' Determine if disbursement code list.\r\n    If strArea <> sSECTION_DISB_DETAIL_DISB_ONLY Then\r\n      ' Not disbursement code list.\r\n      ' Initialise variables.\r\n      nLoop = 1\r\n\r\n      ' Obtain first item from list.     \r\n      strItem = Trim$(Item$(strCode, nLoop))\r\n\r\n      ' Loop through list items.     \r\n      While strItem <> \"\"\r\n        ' Obtain available items.\r\n        strSQL = \"SELECT ROW_UNO,\"\r\n        strSQL = strSQL + \" DD_NAME,\"\r\n        strSQL = strSQL + \" DISP_CODE,\"\r\n        strSQL = strSQL + \" DISP_DESC,\"\r\n        strSQL = strSQL + \" MIN_SIZE,\"\r\n        strSQL = strSQL + \" MAX_SIZE\"\r\n        strSQL = strSQL + \" FROM _HSF_HBL_INVOICE_OPTION\"\r\n        strSQL = strSQL + \" WHERE INACTIVE = 'N'\"\r\n\r\n        ' Determine if area is provided.\r\n        If Trim$(strArea) <> \"\" Then\r\n          ' Filter by area\r\n          strSQL = strSQL + \" AND AREA = '\" + UCase$(strArea) + \"'\"\r\n        End If\r\n\r\n        ' Determine if items already selected.\r\n        If Trim$(strCode) <> \"\" Then\r\n          ' Selected filter.\r\n          strSQL = strSQL + \" AND DD_NAME IN (\" + strItem + \")\"\r\n        End If\r\n\r\n        ' Execute SQL.\r\n        hSQL.IssueCommand strSQL\r\n  \r\n        ' Determine if any errors or no results.\r\n        If (hSQL.Status = SQLERR_NONE And hSQL.Status <> SQLERR_NOROWS) Then\r\n          ' No SQL errors and there are results returned.\r\n          ' Not disbursement code list.\r\n          ' Build the display data.\r\n          strData = Trim$(hSQL.Value(\"ROW_UNO\")) + ebTAB\r\n          strData = strData + Trim$(hSQL.Value(\"DD_NAME\")) + ebTAB\r\n          strData = strData + Trim$(hSQL.Value(\"DISP_CODE\")) + ebTAB\r\n          strData = strData + Trim$(hSQL.Value(\"DISP_DESC\")) + ebTAB\r\n          strData = strData + Trim$(hSQL.Value(\"MIN_SIZE\")) + ebTAB\r\n          strData = strData + Trim$(hSQL.Value(\"MAX_SIZE\"))\r\n\r\n          ' Add row to list box. \r\n          hList.AddRow strData\r\n        End If ' No SQL Errors And Rows Returned.\r\n\r\n        nLoop = nLoop + 1\r\n        strItem = Trim$(Item$(strCode, nLoop))\r\n      WEnd\r\n    Else\r\n      ' Disbursement code list.\r\n      ' Obtain selected items.\r\n      strSQL = \"SELECT COST_CODE,\"\r\n      strSQL = strSQL + \" COST_DESC,\"\r\n      strSQL = strSQL + \" DISBGRP_CODE\"\r\n      strSQL = strSQL + \" FROM CDL_COST\"\r\n      strSQL = strSQL + \" WHERE INACTIVE = 'N'\"\r\n\r\n      ' Determine if items already selected.\r\n      If Trim$(strCode) <> \"\" Then\r\n        ' Selected filter.\r\n        strSQL = strSQL + \" AND COST_CODE IN (\" + strCode + \")\"\r\n      End If\r\n\r\n      strSQL = strSQL + \" ORDER BY COST_CODE\"\r\n\r\n      ' Execute SQL.\r\n      hSQL.IssueCommand strSQL\r\n  \r\n      ' Determine if any errors or no results.\r\n      If (hSQL.Status = SQLERR_NONE And hSQL.Status <> SQLERR_NOROWS) Then\r\n        ' No SQL errors and there are results returned.\r\n        ' Loop through result set. \t  \r\n        While Not(hSQL.AllRowsRead)\r\n          ' Disbursement code list.\r\n          strData = Trim$(hSQL.Value(\"COST_CODE\")) + ebTAB\r\n          strData = strData + Trim$(hSQL.Value(\"COST_DESC\"))\r\n\r\n          ' Add row to list box. \r\n          hList.AddRow strData\r\n\r\n          ' Increment row counter.\r\n          hSQL.Row = hSQL.Row + 1\r\n        WEnd\r\n      End If ' No SQL Errors And Rows Returned.\r\n    End If\r\n  End If ' Selected Items Check.\r\n\r\n  ' Release object handle.\r\n  Set hSQL = Nothing\r\nEnd Sub\r\n\r\nSub HideAll(ByVal hField As Fields)\r\n  Dim nLoop As Long\r\n\r\n  ' Loop through all objects.\r\n  For nLoop = 1 To hField.Count\r\n    ' Determine if current object is a button.\r\n    If hField(nLoop).ObjectType <> O_BUTTON then\r\n      ' Current object not button, thus hide it.\r\n      hField(nLoop).Visible = FALSE\r\n    End If\r\n  Next nLoop\r\n\r\n  ' Unhide the group boxes.\r\n  hField(\"_HSF_BX_HEADER\").Visible = TRUE\r\n\r\n  ' Unhide the header information.\r\n  hField(\"_HSF_CLIENT_CODE\").Visible = TRUE\r\n  hField(\"_HSF_CLIENT_NAME\").Visible = TRUE\r\n  hField(\"_HSF_MATTER_CODE\").Visible = TRUE\r\n  hField(\"_HSF_MATTER_NAME\").Visible = TRUE\r\nEnd Sub\r\n\r\nSub SectionArea(ByVal hField As Fields, ByVal strSection As String)\r\n  Const sSECTION_GENERAL As String = \"GN\"\r\n  Const sSECTION_COVER_LETTER As String = \"CL\"\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n\r\n  Const sCONFIDENTIALITY_OTHER As String = \"CO\"\r\n  Const sDUAL_SIGNATURE_OTHER As String = \"OT\"\r\n\r\n  ' Hide all fields.\r\n  Call HideAll(hField)\r\n\r\n  ' Hide Add and Remove section buttons.\r\n  hField(\"_HSF_BTTN_TS_ADD\").Visible = FALSE\r\n  hField(\"_HSF_BTTN_TS_DEL\").Visible = FALSE\r\n  hField(\"_HSF_BTTN_TD_ADD\").Visible = FALSE\r\n  hField(\"_HSF_BTTN_TD_DEL\").Visible = FALSE\r\n  hField(\"_HSF_BTTN_DS_ADD\").Visible = FALSE\r\n  hField(\"_HSF_BTTN_DS_DEL\").Visible = FALSE\r\n  hField(\"_HSF_BTTN_DD_ADD\").Visible = FALSE\r\n  hField(\"_HSF_BTTN_DD_DEL\").Visible = FALSE\r\n  hField(\"_HSF_BTTN_DD_DI_AD\").Visible = FALSE\r\n  hField(\"_HSF_BTTN_DD_DI_DL\").Visible = FALSE\r\n  hField(\"_HSF_BTTN_GN_AP_MA\").Visible = FALSE\r\n  hField(\"_HSF_BTTN_GN_CP_MA\").Visible = FALSE\r\n\r\n  ' Version number text.\r\n  hField(\"_TXT_VERSION\").Visible = TRUE\r\n\r\n  Select Case strSection\r\n    Case sSECTION_GENERAL\r\n      ' General Section\r\n      Call ProcessGeneralSection(hField)\r\n\r\n    Case sSECTION_COVER_LETTER\r\n      ' Cover Letter Section\r\n      hField(\"_HSF_CHK_CL_INCLDE\").Visible = TRUE\r\n\r\n      Call ProcessCoverLetterSection(hField)     \r\n\r\n    Case sSECTION_TIME_SUMMARY\r\n      ' Time Summary Section\r\n      hField(\"_HSF_CHK_TS_INCLDE\").Visible = TRUE\r\n\r\n      Call ProcessTimeSummarySection(hField)     \r\n\r\n    Case sSECTION_TIME_DETAIL\r\n      ' Time Detail Section\r\n      hField(\"_HSF_CHK_TD_INCLDE\").Visible = TRUE\r\n\r\n      Call ProcessTimeDetailSection(hField)     \r\n\r\n    Case sSECTION_DISB_SUMMARY\r\n      ' Disb Summary Section\r\n      hField(\"_HSF_CHK_DS_INCLDE\").Visible = TRUE\r\n\r\n      Call ProcessDisbSummarySection(hField)     \r\n\r\n    Case sSECTION_DISB_DETAIL\r\n      ' Disb Detail Section\r\n      hField(\"_HSF_CHK_DD_INCLDE\").Visible = TRUE\r\n\r\n      Call ProcessDisbDetailSection(hField)     \r\n\r\n    Case Else\r\n      ' General Section\r\n      Call ProcessGeneralSection(hField)\r\n\r\n  End Select\r\nEnd Sub\r\n\r\nSub AfterInsert()\r\n  Const sFROM_CLIENT As String = \"TBMCLNT\"\r\n  Const sFROM_MATTER As String = \"TBMMATT3\"\r\n\r\n  Dim hField As Fields\r\n  Dim hSQL As New SQLAccess\r\n  Dim strSQL As String\r\n\r\n  Dim strOptUno As String\r\n  Dim strMatterCode As String\r\n\r\n  Dim strMsg As String\r\n  Dim nResponse As String\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.Form.Fields\r\n\r\n  ' Obtain the new option key.\r\n  strOptUno = Trim$(hField(\"OPT_UNO\").Value)\r\n\r\n  ' Obtain matter code\r\n  strMatterCode = Trim$(hField(\"_HSF_MATTER_CODE\").Value)\r\n\r\n  ' Determine where the screen is launched from and set the header information.\r\n  If (gstrCmdExe <> sFROM_CLIENT And gstrCmdExe <> sFROM_MATTER) Then\r\n    ' Calling from the billing desktop.\r\n    ' Determine if a matter billing key is provided.\r\n    If gstrBillMUno <> \"\" Then\r\n      ' Matter billing key provided, thus update it with the new option key.\r\n      strSQL = \"UPDATE BLT_BILLM\"\r\n      strSQL = strSQL + \" SET OPT_UNO = \" + strOptUno + \",\"\r\n      strSQL = strSQL + \" LAST_MODIFIED = GETDATE()\"\r\n      strSQL = strSQL + \" WHERE BILLM_UNO = \" + gstrBillMUno\r\n\r\n      ' Execute SQL statement.\r\n      hSQL.IssueCommand strSQL\r\n    End If  ' Matter Billing Provided Check\r\n\r\n    ' Obtain confirmation from user if new option key should be applied back to the matter.\r\n    ' Build and display confirmation.\r\n    strMsg = \"Would you like to save these settings permanently? If you select No these settings will be used for only this bill.\"\r\n    nResponse = YesNoMessage(strMsg)\r\n\r\n    ' Determine user response.\r\n    If nResponse = BUTTON_YES Then\r\n      ' Determine if matter is provided.\r\n      If strMatterCode <> \"\" Then\r\n        ' User confirms that new option key should be applied back to the matter.\r\n        strSQL = \"UPDATE TM\"\r\n        strSQL = strSQL + \" SET OPT_UNO = \" + strOptUno + \",\"\r\n        strSQL = strSQL + \" LAST_MODIFIED = GETDATE()\"\r\n        strSQL = strSQL + \" FROM HBM_MATTER M INNER JOIN TBM_MATTER TM\"\r\n        strSQL = strSQL + \" ON M.MATTER_UNO = TM.MATTER_UNO\"\r\n        strSQL = strSQL + \" WHERE M.MATTER_CODE = '\" + strMatterCode + \"'\"\r\n\r\n        ' Execute SQL statement.\r\n        hSQL.IssueCommand strSQL\r\n      End If  ' Matter Provided Check\r\n    End If  ' User Response Check\r\n  End If  ' Launch From Billing Desktop Check\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\n  Set hSQL = Nothing\r\nEnd Sub\r\n\r\nFunction ValidateRecord() As Integer\r\n  Const sOPTION_VALIDATION_ERROR_SCREEN As String = \"_HSF_OPTION_VAL_ERR\"\r\n  Const nMAX_ARRAY_SLOT As Long = 40\r\n  Const nMAX_ITEMS As Long = 6\r\n\r\n  Const sSECTION_TIME_SUMMARY As String = \"Time Summary\"\r\n  Const sSECTION_TIME_DETAIL As String = \"Time Detail\"\r\n  Const sSECTION_DISB_SUMMARY As String = \"Disb Summary\"\r\n  Const sSECTION_DISB_DETAIL As String = \"Disb Detail\"\r\n\r\n  Const sCOLUMN_TITLE_TO_SEARCH As String  = \"DD Name\"\r\n\r\n  Const sLIST_ITEM_TIME_TKPR_CODE As String  = \"t_tkpr\"\r\n  Const sLIST_ITEM_TIME_TKPR_INIT As String  = \"t_tkpr_init\"\r\n  Const sLIST_ITEM_TIME_TKPR_NAME As String  = \"t_tkpr_name\"\r\n  Const sLIST_ITEM_TIME_RANK As String  = \"t_rank\"\r\n  Const sLIST_ITEM_TIME_STD_AMT As String  = \"t_pcur_samt\"\r\n  Const sLIST_ITEM_TIME_BILL_AMT As String  = \"t_pcur_amt\"\r\n  Const sLIST_ITEM_TIME_STD_RATE As String  = \"_hsf_t_sratex\"\r\n  Const sLIST_ITEM_TIME_BILL_RATE As String  = \"t_rate\"\r\n  Const sLIST_ITEM_TIME_TRAN_DATE As String  = \"t_date\"\r\n  Const sLIST_ITEM_BULLET As String  = \"d_bullet\"\r\n  Const sLIST_ITEM_TIME_CLNT_PHASE As String  = \"t_client_phase\"\r\n  Const sLIST_ITEM_TIME_CLNT_TASK As String  = \"t_client_task\"\r\n  Const sLIST_ITEM_TIME_ACTIVITY As String  = \"t_activity\"\r\n  Const sLIST_ITEM_TIME_NARRATIVE As String  = \"t_narrative\"\r\n  Const sLIST_ITEM_TIME_NARRATIVE_LOC_1 As Integer = 2\r\n  Const sLIST_ITEM_TIME_NARRATIVE_LOC_2 As Integer = 3\r\n\r\n  Const sLIST_ITEM_DISB_TKPR_CODE As String  = \"d_tkpr\"\r\n  Const sLIST_ITEM_DISB_TKPR_NAME As String  = \"d_tkpr_name\"\r\n  Const sLIST_ITEM_DISB_CLNT_PHASE As String  = \"d_client_phase\"\r\n  Const sLIST_ITEM_DISB_CLNT_TASK As String  = \"d_client_task\"\r\n  Const sLIST_ITEM_DISB_COST_CODE As String  = \"d_cost\"\r\n  Const sLIST_ITEM_DISB_COST_DESC As String  = \"d_cost_desc\"\r\n  Const sLIST_ITEM_DISB_GROUP_CODE As String  = \"d_group\"\r\n  Const sLIST_ITEM_DISB_GROUP_DESC As String  = \"d_group_desc\"\r\n  Const sLIST_ITEM_DISB_TRAN_DATE As String  = \"d_date\"\r\n  Const sLIST_ITEM_DISB_NARRATIVE As String  = \"d_narrative\"\r\n  Const sLIST_ITEM_DISB_BILL_AMT As String  = \"d_pcur_amt\"\r\n  Const sLIST_ITEM_DISB_NARRATIVE_LOC_1 As Integer = 1\r\n  Const sLIST_ITEM_DISB_NARRATIVE_LOC_2 As Integer = 2\r\n  Const sLIST_ITEM_DISB_NARRATIVE_LOC_3 As Integer = 3\r\n\r\n  Dim hDestinationListTS As List\r\n  Dim hDestinationListTD As List\r\n  Dim hDestinationListDS As List\r\n  Dim hDestinationListDD As List\r\n\r\n  Dim hField As Fields\r\n  Dim strData As String\r\n  \r\n  Dim nErrorCount As Long\r\n  Dim strErrorMsg As String\r\n\r\n  Dim arErrors() As String\r\n  Dim nArraySlot As Long\r\n  Dim nLoop As Long\r\n  Dim hForm As New PopUpForm\r\n\r\n  Dim nItemPosition1 As Integer\r\n  Dim nItemPosition2 As Integer\r\n  Dim nItemPosition3 As Integer\r\n  Dim nItemPosition4 As Integer\r\n\r\n  Set hField = ThisField.Form.Fields\r\n  Set hDestinationListTS = hField(\"_HSF_LST_TS_INCL\").List\r\n  Set hDestinationListTD = hField(\"_HSF_LST_TD_INCL\").List\r\n  Set hDestinationListDS = hField(\"_HSF_LST_DS_INCL\").List\r\n  Set hDestinationListDD = hField(\"_HSF_LST_DD_INCL\").List\r\n\r\n  ReDim arErrors(nMAX_ARRAY_SLOT)\r\n\r\n  ' Initialise variable.\r\n  nErrorCount = 0\r\n  nArraySlot = 0\r\n\r\n  ' List Item Validations:\r\n  ' TIME SUMMARY\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_TS_INCLDE\").Value = hField(\"_HSF_CHK_TS_INCLDE\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    ' 1) Determine if timekeeper name is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListTS, sLIST_ITEM_TIME_TKPR_NAME, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0) Then\r\n      ' Timekeeper name is selected.\r\n      ' Determine if the timekeeper code is selected.\r\n      nItemPosition2 = FindListItem(hDestinationListTS, sLIST_ITEM_TIME_TKPR_CODE, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n      If (nItemPosition2 > 0) Then\r\n        ' Timekeeper code is selected, check if the code is close to the timekeeper name.\r\n        If ( (nItemPosition2 <> (nItemPosition1 + 1) And nItemPosition1 > 0) And (nItemPosition2 <> (nItemPosition1 - 1) And nItemPosition1 > 1 ) ) Then\r\n          ' Timekeeper code and name are not next to each other.\r\n          nErrorCount = nErrorCount + 1\r\n          strErrorMsg = sSECTION_TIME_SUMMARY + ebTAB + \"The Timekeeper Code and Timekeeper Name MUST be selected next to each other.\"\r\n\r\n          ' Hold error message in a string array.\r\n          arErrors(nArraySlot) = strErrorMsg\r\n\r\n          ' Increment array slot counter.\r\n          nArraySlot = nArraySlot + 1\r\n        End If\r\n      End If\r\n    End If\r\n\r\n    ' 2) Determine if standard rate and bill amount are selected.\r\n    nItemPosition1 = FindListItem(hDestinationListTS, sLIST_ITEM_TIME_BILL_AMT, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0) Then\r\n      ' Billed amount is selected.\r\n      ' Determine if standard rate is selected.\r\n      nItemPosition2 = FindListItem(hDestinationListTS, sLIST_ITEM_TIME_STD_RATE, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n      If (nItemPosition2 > 0) Then\r\n        ' Determine if billed rate is selected.\r\n        nItemPosition3 = FindListItem(hDestinationListTS, sLIST_ITEM_TIME_BILL_RATE, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n        If (nItemPosition1 > 0 And nItemPosition2 > 0 And nItemPosition3 = 0) Then\r\n          ' Billed rate not selected.\r\n          ' Increment error counter.\r\n          nErrorCount = nErrorCount + 1\r\n          strErrorMsg = sSECTION_TIME_SUMMARY + ebTAB + \"The Billed Amount and Standard Rate was selected but no Billed Rate was selected. Billed Rate MUST also be selected with Billed Amount and Standard Rate.\"\r\n\r\n          ' Hold error message in a string array.\r\n          arErrors(nArraySlot) = strErrorMsg\r\n\r\n          ' Increment array slot counter.\r\n          nArraySlot = nArraySlot + 1\r\n        End If\r\n      End If\r\n\r\n      ' Determine if the billed amount is the last selected item.\r\n      If nItemPosition1 <> hDestinationListTS.Count Then\r\n        ' Billed amount not last item selected.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_TIME_SUMMARY + ebTAB + \"The Billed Amount MUST be selected in the LAST position.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    Else\r\n      ' Billed amount not selected.\r\n      ' Increment error counter.\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_TIME_SUMMARY + ebTAB + \"The Billed Amount MUST be selected as it is a MANDATORY item.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    End If\r\n\r\n    ' 3) Determine if standard amount is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListTS, sLIST_ITEM_TIME_STD_AMT, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0) Then\r\n      ' Standard amount is selected\r\n      ' Determine if billed amount is selected.\r\n      nItemPosition2 = FindListItem(hDestinationListTS, sLIST_ITEM_TIME_BILL_AMT, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n      If (nItemPosition1 > 0 And nItemPosition2 = 0) Then\r\n        ' Billed amount not selected.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_TIME_SUMMARY + ebTAB + \"The Standard Amount was selected but no Billed Amount was selected. Billed Amount MUST also be selected with Standard Amount.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    End If\r\n\r\n    ' 4) Determine if selected items has exceeded maximum allow.\r\n    If (hDestinationListTS.Count > nMAX_ITEMS) Then\r\n      ' Selected items.\r\n      ' Increment error counter.\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_TIME_SUMMARY + ebTAB + \"The number of items selected has exceeded the maximum number (\" + CStr(nMAX_ITEMS) + \") allowed.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    End If\r\n  End If  ' Time Summary Flag Check.\r\n\r\n\r\n  ' TIME DETAIL\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_TD_INCLDE\").Value = hField(\"_HSF_CHK_TD_INCLDE\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    ' 1) Determine if transaction date or bullet is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_TRAN_DATE, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0) Then\r\n      ' Transaction date is selected, thus check if bullet is also selected.\r\n      nItemPosition2 = FindListItem(hDestinationListTD, sLIST_ITEM_BULLET, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n      If (nItemPosition2 > 0) Then\r\n        ' Both transaction date and bullet selected.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"Both the Transaction Date and Bullet Point was selected. Only ONE of the items can be selected.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n\r\n      ' Determine if transaction date is in first position.\r\n      If (nItemPosition1 <> 1 And nItemPosition2 = 0) Then\r\n        ' Transaction date not first position. \r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"The Transaction Date MUST be selected in the FIRST position.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    Else\r\n      ' Determine if bullet is selected.\r\n      nItemPosition1 = FindListItem(hDestinationListTD, sLIST_ITEM_BULLET, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n      If (nItemPosition1 > 0) Then\r\n        ' Bullet is selected, thus check if transaction date is also selected.\r\n        nItemPosition2 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_TRAN_DATE, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n        If (nItemPosition2 > 0) Then\r\n          ' Both transaction date and bullet selected.\r\n          ' Increment error counter.\r\n          nErrorCount = nErrorCount + 1\r\n          strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"Both the Transaction Date and Bullet Point was selected. Only ONE of the items can be selected.\"\r\n\r\n          ' Hold error message in a string array.\r\n          arErrors(nArraySlot) = strErrorMsg\r\n\r\n          ' Increment array slot counter.\r\n          nArraySlot = nArraySlot + 1\r\n        End If\r\n\r\n        ' Determine if bullet is in first position.\r\n        If (nItemPosition1 <> 1 And nItemPosition2 = 0) Then\r\n          ' Bullet not in first position.\r\n          ' Increment error counter.\r\n          nErrorCount = nErrorCount + 1\r\n          strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"The Bullet Point MUST be selected in the FIRST position.\"\r\n\r\n          ' Hold error message in a string array.\r\n           arErrors(nArraySlot) = strErrorMsg\r\n\r\n          ' Increment array slot counter.\r\n          nArraySlot = nArraySlot + 1\r\n        End If\r\n      End If\r\n    End If\r\n\r\n    ' 2) Determine if timekeeper name is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_TKPR_NAME, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0) Then\r\n      ' Timekeeper name is selected.\r\n      ' Determine if the timekeeper code is selected.\r\n      nItemPosition2 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_TKPR_CODE, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n      If (nItemPosition2 > 0) Then\r\n        ' Timekeeper code is selected, check if the code is close to the timekeeper name.\r\n        If ( (nItemPosition2 <> (nItemPosition1 + 1) And nItemPosition1 > 0) And (nItemPosition2 <> (nItemPosition1 - 1) And nItemPosition1 > 1 ) ) Then\r\n          ' Timekeeper code and name are not next to each other.\r\n          nErrorCount = nErrorCount + 1\r\n          strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"The Timekeeper Code and Timekeeper Name MUST be selected NEXT to each other.\"\r\n\r\n          ' Hold error message in a string array.\r\n          arErrors(nArraySlot) = strErrorMsg\r\n\r\n          ' Increment array slot counter.\r\n          nArraySlot = nArraySlot + 1\r\n        End If\r\n      End If\r\n    End If\r\n\r\n    ' 3) Determine if timekeeper initial is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_TKPR_INIT, sCOLUMN_TITLE_TO_SEARCH)\r\n    nItemPosition2 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_TKPR_NAME, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0 And nItemPosition2 > 0) Then\r\n      ' Both timekeeper name and initial are selected.\r\n      ' Increment error counter.\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"Both the Timekeeper Initials and Timekeeper Name was selected. Only ONE of the items can be selected.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    End If\r\n\r\n    ' 4) Determine if timekeeper rank is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_RANK, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0) Then\r\n      ' Timekeeper rank is selected, thus check if timekeeper name or initial is also selected.\r\n      nItemPosition2 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_TKPR_INIT, sCOLUMN_TITLE_TO_SEARCH)\r\n      nItemPosition3 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_TKPR_NAME, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n      If (nItemPosition2 = 0 And nItemPosition3 = 0) Then\r\n        ' No timekeeper name or initial selected.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"The Rank was selected but no Timekeeper Initials or Timekeeper Name was selected. The Timekeeper Initials or Timekeeper Name MUST be selected with the Rank.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If \r\n    End If\r\n\r\n    ' 5) Determine if phase and task are selected.\r\n    nItemPosition1 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_CLNT_PHASE, sCOLUMN_TITLE_TO_SEARCH)\r\n    nItemPosition2 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_CLNT_TASK, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0 And nItemPosition2 > 0) Then\r\n      ' Phase and task are selected, check if the task is after the phase.\r\n      If ( (nItemPosition2 <> (nItemPosition1 + 1) And nItemPosition1 > 0) ) Then\r\n        ' Task is not directly to right of Phase.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"The Task MUST be IMMEDIATELY AFTER the Phase.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    End If\r\n\r\n    ' 6) Determine if task and activity code are selected.\r\n    nItemPosition1 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_CLNT_TASK, sCOLUMN_TITLE_TO_SEARCH)\r\n    nItemPosition2 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_ACTIVITY, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0 And nItemPosition2 > 0) Then\r\n      ' Task and activity code are selected, check if activity code is after task.\r\n      If ( (nItemPosition2 <> (nItemPosition1 + 1) And nItemPosition1 > 0) ) Then\r\n        ' Activity is not directly to right of Task.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"The Activity Code MUST be IMMEDIATELY AFTER the Task.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    End If\r\n\r\n    ' 7) Determine if narrative has been selected.\r\n    nItemPosition1 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_NARRATIVE, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 = 0) Then\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"The Narrative MUST be selected and located in position \" + CStr(sLIST_ITEM_TIME_NARRATIVE_LOC_1) + \" or \" + CStr(sLIST_ITEM_TIME_NARRATIVE_LOC_2) + \" as it is a MANDATORY item.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    Else\r\n      ' Narrative selected, determine if its located in position 2 or 3.\r\n      If (nItemPosition1 <> sLIST_ITEM_TIME_NARRATIVE_LOC_1 And nItemPosition1 <> sLIST_ITEM_TIME_NARRATIVE_LOC_2) Then\r\n        ' Narrative not in position. \r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"The Narrative MUST be located in position \" + CStr(sLIST_ITEM_TIME_NARRATIVE_LOC_1) + \" or \" + CStr(sLIST_ITEM_TIME_NARRATIVE_LOC_2) + \".\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    End If\r\n\r\n    ' 8) Determine if billed amount is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListTD, sLIST_ITEM_TIME_BILL_AMT, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0 And nItemPosition1 <> hDestinationListTD.Count) Then\r\n      ' Billed amount is selected and is not located in the last position.\r\n      ' Increment error counter.\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"The Billed Amount MUST be selected in the LAST position.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    End If\r\n\r\n    ' 9) Determine if selected items has exceeded maximum allow.\r\n    If (hDestinationListTD.Count > nMAX_ITEMS) Then\r\n      ' Selected items.\r\n      ' Increment error counter.\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"The number of items selected has exceeded the maximum number (\" + CStr(nMAX_ITEMS) + \") allowed.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    End If\r\n  End If  ' Time Detail Flag Check.\r\n\r\n\r\n  ' DISBURSEMENT SUMMARY\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_DS_INCLDE\").Value = hField(\"_HSF_CHK_DS_INCLDE\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    ' 1) Determine if timekeeper name is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDS, sLIST_ITEM_DISB_TKPR_NAME, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0) Then\r\n      ' Timekeeper name is selected.\r\n      ' Determine if the timekeeper code is selected.\r\n      nItemPosition2 = FindListItem(hDestinationListDS, sLIST_ITEM_DISB_TKPR_CODE, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n      If (nItemPosition2 > 0) Then\r\n        ' Timekeeper code is selected, check if the code is close to the timekeeper name.\r\n        If ( (nItemPosition2 <> (nItemPosition1 + 1) And nItemPosition1 > 0) And (nItemPosition2 <> (nItemPosition1 - 1) And nItemPosition1 > 1 ) ) Then\r\n          ' Timekeeper code and name are not next to each other.\r\n          nErrorCount = nErrorCount + 1\r\n          strErrorMsg = sSECTION_DISB_SUMMARY + ebTAB + \"The Timekeeper Code and Timekeeper Name MUST be selected NEXT to each other.\"\r\n\r\n          ' Hold error message in a string array.\r\n          arErrors(nArraySlot) = strErrorMsg\r\n\r\n          ' Increment array slot counter.\r\n          nArraySlot = nArraySlot + 1\r\n        End If\r\n      End If\r\n    End If\r\n\r\n    ' 2) Determine if disbursement description is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDS, sLIST_ITEM_DISB_COST_DESC, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 = 0) Then\r\n      ' Cost description not selected.\r\n      ' Increment error counter.\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_DISB_SUMMARY + ebTAB + \"The Disbursement Description MUST be selected as it is a MANDATORY item.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    End If\r\n\r\n    ' 3) Determine if disbursement code and disbursment description are selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDS, sLIST_ITEM_DISB_COST_CODE, sCOLUMN_TITLE_TO_SEARCH)\r\n    nItemPosition2 = FindListItem(hDestinationListDS, sLIST_ITEM_DISB_COST_DESC, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0 And nItemPosition2 > 0) Then\r\n      ' Disbursement group code and disbursement group description are selected.\r\n      ' Determine if the disbursement group code is before the disbursement group description.\r\n      If ( (nItemPosition1 > nItemPosition2) Or (nItemPosition1 <> (nItemPosition2 - 1) And nItemPosition2 > 1) ) Then\r\n        ' Disbursement group code is not before disbursement group description.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_DISB_SUMMARY + ebTAB + \"The Disbursement Code MUST be IMMEDIATELY BEFORE the Disbursement Description.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    End If\r\n\r\n    ' 4) Determine if disbursement group code and disbursement group description are selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDS, sLIST_ITEM_DISB_GROUP_CODE, sCOLUMN_TITLE_TO_SEARCH)\r\n    nItemPosition2 = FindListItem(hDestinationListDS, sLIST_ITEM_DISB_GROUP_DESC, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0 And nItemPosition2 > 0) Then\r\n      ' Disbursement group code and disbursement group description are selected.\r\n      ' Determine if the disbursement group code is before the disbursement group description.\r\n      If ( (nItemPosition1 > nItemPosition2) Or (nItemPosition1 <> (nItemPosition2 - 1) And nItemPosition2 > 1) ) Then\r\n        ' Disbursement group code is not before disbursement group description.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_DISB_SUMMARY + ebTAB + \"The Disbursement Group Code MUST be IMMEDIATELY BEFORE Disbursement Group Description.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    End If\r\n\r\n    ' 5) Determine if phase and task are selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDS, sLIST_ITEM_DISB_CLNT_PHASE, sCOLUMN_TITLE_TO_SEARCH)\r\n    nItemPosition2 = FindListItem(hDestinationListDS, sLIST_ITEM_DISB_CLNT_TASK, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0 And nItemPosition2 > 0) Then\r\n      ' Phase and task are selected, check if the task is after the phase.\r\n      If ( (nItemPosition2 <> (nItemPosition1 + 1) And nItemPosition1 > 0) ) Then\r\n        ' Task is not directly to right of Phase.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_DISB_SUMMARY + ebTAB + \"The Task MUST be IMMEDIATELY AFTER the Phase.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    End If\r\n\r\n    ' 6) Determine if billed amount is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDS, sLIST_ITEM_DISB_BILL_AMT, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0) Then\r\n      ' Billed amount is selected.\r\n      ' Determine if the billed amount is the last selected item.\r\n      If nItemPosition1 <> hDestinationListDS.Count Then\r\n        ' Billed amount not last item selected.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_DISB_SUMMARY + ebTAB + \"The Amount MUST be selected in the LAST position.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    Else\r\n      ' Billed amount not selected.\r\n      ' Increment error counter.\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_DISB_SUMMARY + ebTAB + \"The Amount MUST be selected as it is a MANDATORY item.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    End If\r\n\r\n    ' 7) Determine if selected items has exceeded maximum allow.\r\n    If (hDestinationListDS.Count > nMAX_ITEMS) Then\r\n      ' Selected items.\r\n      ' Increment error counter.\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_DISB_SUMMARY + ebTAB + \"The number of items selected has exceeded the maximum number (\" + CStr(nMAX_ITEMS) + \") allowed.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    End If\r\n  End If  ' Disbursement Summary Flag Check.\r\n\r\n\r\n  ' DISBURSEMENT DETAIL\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_DD_INCLDE\").Value = hField(\"_HSF_CHK_DD_INCLDE\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    ' 1) Determine if transaction date selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDD, sLIST_ITEM_DISB_TRAN_DATE, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0 And nItemPosition1 <> 1) Then\r\n      ' Transaction date is selected but not in first position.\r\n      ' Increment error counter.\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_DISB_DETAIL + ebTAB + \"The Date MUST be selected in the FIRST position.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    End If\r\n\r\n    ' 2) Determine if timekeeper code and name are selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDD, sLIST_ITEM_DISB_TKPR_NAME, sCOLUMN_TITLE_TO_SEARCH)\r\n    nItemPosition2 = FindListItem(hDestinationListDD, sLIST_ITEM_DISB_TKPR_CODE, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0 And nItemPosition2 > 0) Then\r\n      ' Timekeeper code and name are selected, check if the code is close to the timekeeper name.\r\n      If ( (nItemPosition2 <> (nItemPosition1 + 1) And nItemPosition1 > 0) And (nItemPosition2 <> (nItemPosition1 - 1) And nItemPosition1 > 1 ) ) Then\r\n        ' Timekeeper code and name are not next to each other.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_DISB_DETAIL + ebTAB + \"The Timekeeper Code and Timekeeper Name MUST be selected NEXT to each other.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    End If\r\n\r\n    ' 3) Determine if disbursement code and description are selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDD, sLIST_ITEM_DISB_COST_CODE, sCOLUMN_TITLE_TO_SEARCH)\r\n    nItemPosition2 = FindListItem(hDestinationListDD, sLIST_ITEM_DISB_COST_DESC, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0 And nItemPosition2 > 0) Then\r\n      ' Disbursement code and name are selected, check if the code is before description.\r\n      If ( (nItemPosition1 > nItemPosition2) Or (nItemPosition1 <> (nItemPosition2 - 1) And nItemPosition2 > 1) ) Then\r\n        ' Disbursement code is not before the disbursement description.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_DISB_DETAIL + ebTAB + \"The Disbursement Code MUST be IMMEDIATELY BEFORE the Disbursement Description.\"\r\n    \r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    End If\r\n\r\n    ' 4) Determine if task is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDD, sLIST_ITEM_DISB_CLNT_PHASE, sCOLUMN_TITLE_TO_SEARCH)\r\n    nItemPosition2 = FindListItem(hDestinationListDD, sLIST_ITEM_DISB_CLNT_TASK, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 > 0 And nItemPosition2 > 0) Then\r\n      ' Phase and task are selected, check if the task is after the phase.\r\n      If ( (nItemPosition2 <> (nItemPosition1 + 1) And nItemPosition1 > 0) ) Then\r\n        ' Task is not directly to right of Phase.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_TIME_DETAIL + ebTAB + \"The Task MUST be IMMEDIATELY AFTER the Phase.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    End If\r\n\r\n    ' 5) Determine if billed amount is selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDD, sLIST_ITEM_DISB_BILL_AMT, sCOLUMN_TITLE_TO_SEARCH) \r\n\r\n    If (nItemPosition1 > 0) Then\r\n      ' Billed amount is selected.\r\n      ' Determine if the billed amount is the last selected item.\r\n      If nItemPosition1 <> hDestinationListDD.Count Then\r\n        ' Billed amount not last item selected.\r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_DISB_DETAIL + ebTAB + \"The Amount MUST be selected in the LAST position.\"\r\n\r\n        ' Hold error message in a string array.\r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter.\r\n        nArraySlot = nArraySlot + 1\r\n      End If\r\n    End If\r\n\r\n    ' 6) Determine if narrative has been selected.\r\n    nItemPosition1 = FindListItem(hDestinationListDD, sLIST_ITEM_DISB_NARRATIVE, sCOLUMN_TITLE_TO_SEARCH)\r\n\r\n    If (nItemPosition1 = 0) Then\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_DISB_DETAIL + ebTAB + \"The Narrative MUST be selected and located in position \" + CStr(sLIST_ITEM_DISB_NARRATIVE_LOC_1) \r\n      strErrorMsg = strErrorMsg + \", \" + CStr(sLIST_ITEM_DISB_NARRATIVE_LOC_2) + \" or \" + CStr(sLIST_ITEM_DISB_NARRATIVE_LOC_3) + \"  as it is a MANDATORY item.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    Else\r\n      ' Narrative selected, determine if its located in position 1, 2 or 3.\r\n      If (nItemPosition1 <> sLIST_ITEM_DISB_NARRATIVE_LOC_1 And nItemPosition1 <> sLIST_ITEM_DISB_NARRATIVE_LOC_2 And nItemPosition1 <> sLIST_ITEM_DISB_NARRATIVE_LOC_3) Then\r\n        ' Narrative not in position. \r\n        ' Increment error counter.\r\n        nErrorCount = nErrorCount + 1\r\n        strErrorMsg = sSECTION_DISB_DETAIL + ebTAB + \"The Narrative MUST be located in position \" + CStr(sLIST_ITEM_DISB_NARRATIVE_LOC_1)\r\n        strErrorMsg = strErrorMsg + \", \" + CStr(sLIST_ITEM_DISB_NARRATIVE_LOC_2) + \" or \" + CStr(sLIST_ITEM_DISB_NARRATIVE_LOC_3) + \".\"\r\n\r\n        ' Hold error message in a string array. \r\n        arErrors(nArraySlot) = strErrorMsg\r\n\r\n        ' Increment array slot counter. \r\n        nArraySlot = nArraySlot + 1 \r\n      End If\r\n    End If\r\n\r\n    ' 7) Determine if selected items has exceeded maximum allow.\r\n    If (hDestinationListDD.Count > nMAX_ITEMS) Then\r\n      ' Selected items.\r\n      ' Increment error counter.\r\n      nErrorCount = nErrorCount + 1\r\n      strErrorMsg = sSECTION_DISB_DETAIL + ebTAB + \"The number of items selected has exceeded the maximum number (\" + CStr(nMAX_ITEMS) + \") allowed.\"\r\n\r\n      ' Hold error message in a string array.\r\n      arErrors(nArraySlot) = strErrorMsg\r\n\r\n      ' Increment array slot counter.\r\n      nArraySlot = nArraySlot + 1\r\n    End If\r\n  End If  ' Disbursement Detail Flag Check.\r\n\r\n\r\n  ' DISPLAY ERROR MESSAGE\r\n  ' Determine if there are any errors.\r\n  If nErrorCount > 0 Then\r\n    Dim nArrayNum As Long\r\n\r\n    nArrayNum = UBound(arErrors)\r\n\r\n    ' Determine if any elements in Error array.\r\n    If UBound(arErrors) > 0 Then\r\n      ' There are errors, display them.\r\n      hForm.LoadSubForm sOPTION_VALIDATION_ERROR_SCREEN\r\n\r\n      For nLoop = 0 To UBound(arErrors) - 1\r\n        ' Determine if line is non blank.      \r\n        If Trim$(arErrors(nLoop)) <> \"\" Then\r\n          hForm.Form.Fields(\"_LIST\").List.AddRow arErrors(nLoop)\r\n        End If\r\n      Next nLoop\r\n\r\n      hForm.WaitForClose\r\n    End If ' Array Entries,\r\n\r\n    ValidateRecord = FALSE\r\n  Else\r\n    ValidateRecord = TRUE\r\n  End If\r\n\r\n  ' Reset handles.\r\n  Set hField = Nothing\r\n  Set hDestinationListTS = Nothing\r\n  Set hDestinationListTD = Nothing\r\n  Set hDestinationListDS = Nothing\r\n  Set hDestinationListDD = Nothing\r\n  Set hForm = Nothing\r\nEnd Function\r\n\r\nSub ModeChange(nMode As Integer)\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.Form.Fields\r\n\r\n  If nMode = MODE_CHANGE Then\r\n    ' Determine if value is ticked.\r\n    If hField(\"_HSF_CHK_GN_DT_RNG\").Value = hField(\"_HSF_CHK_GN_DT_RNG\").Checkbox.OnValue Then\r\n      ' Value is ticked.\r\n      ' Value is not ticked.\r\n      hField(\"_HSF_RB_GN_DT_OPT\").Enabled = TRUE\r\n    Else\r\n      ' Value is not ticked.\r\n      hField(\"_HSF_RB_GN_DT_OPT\").Enabled = FALSE\r\n    End If\r\n  End If\r\n\r\n  ' Determine if include matter cost to date is ticked.\r\n  If hField(\"_HSF_CHK_GN_INC_MC\").Value = hField(\"_HSF_CHK_GN_INC_MC\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_RB_GN_MC_OP\").Enabled = TRUE\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_RB_GN_MC_OP\").Enabled = FALSE\r\n  End If\r\n\r\n  If gbAccessDiscount Then\r\n    hField(\"_HSF_GN_PCT_DISC\").Enabled = TRUE\r\n  Else\r\n    hField(\"_HSF_GN_PCT_DISC\").Enabled = FALSE\r\n  End If\r\n\r\n'  InfoMessage \"nMode = \" + CStr(nMode)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\nSub Load()\r\n  Const sFROM_CLIENT As String = \"TBMCLNT\"\r\n  Const sFROM_MATTER As String = \"TBMMATT3\"\r\n  Const sCMD_START_PARM As String = \"START\"\r\n\r\n  Const sSECTION_GENERAL As String = \"GN\"\r\n  Const sSECTION_COVER_LETTER As String = \"CL\"\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n  Const sSECTION_DISB_DETAIL_DISB_ONLY As String = \"DDDI\"\r\n\r\n  Const sWG_REFERENCE_INVOICE_OPTION_FULL As String = \"CMRF\"\r\n  Const sWG_CLIENT_MATTER_EDIT As String = \"CMED\"\r\n\r\n  Dim strMsg As String\r\n  Dim strClientCode As String\r\n  Dim strClientName As String\r\n  Dim strMatterCode As String\r\n  Dim strMatterName As String\r\n\r\n  Dim strCode As String\r\n  Dim hListTSAvail As List\r\n  Dim hListTSIncl As List\r\n  Dim hListTDAvail As List\r\n  Dim hListTDIncl As List\r\n  Dim hListDSAvail As List\r\n  Dim hListDSIncl As List\r\n  Dim hListDDAvail As List\r\n  Dim hListDDIncl As List\r\n  Dim hListDDDisbAvail As List\r\n  Dim hListDDDisbIncl As List\r\n\r\n  Dim f As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set f = ThisField.Form.Fields\r\n\r\n  Set hListTSAvail = f(\"_HSF_LST_TS_AVAIL\").List\r\n  Set hListTSIncl = f(\"_HSF_LST_TS_INCL\").List\r\n  Set hListTDAvail = f(\"_HSF_LST_TD_AVAIL\").List\r\n  Set hListTDIncl = f(\"_HSF_LST_TD_INCL\").List\r\n  Set hListDSAvail = f(\"_HSF_LST_DS_AVAIL\").List\r\n  Set hListDSIncl = f(\"_HSF_LST_DS_INCL\").List\r\n  Set hListDDAvail = f(\"_HSF_LST_DD_AVAIL\").List\r\n  Set hListDDIncl = f(\"_HSF_LST_DD_INCL\").List\r\n  Set hListDDDisbAvail = f(\"_HSF_LST_DD_DI_AVL\").List\r\n  Set hListDDDisbIncl = f(\"_HSF_LST_DD_DI_INC\").List\r\n\r\n  ' Obtain the first commandline value.\r\n  gstrCmdExe = CStr(CommandLine.Value(sCMD_START_PARM))\r\n\r\n  ' Display the General information.\r\n  Call SectionArea(f, sSECTION_GENERAL)\r\n\r\n  ' Initialise variables.\r\n  strClientCode = \"\"\r\n  strClientName = \"\"\r\n  strMatterCode = \"\"\r\n  strMatterName = \"\"\r\n\r\n  ' Determine where the screen is launched from and set the header information.\r\n  If gstrCmdExe = sFROM_CLIENT Then\r\n    strClientCode = ThisField.ParentForm.Fields(\"CLIENT_CODE\").Value\r\n    strClientName = ThisField.ParentForm.Fields(\"CLIENT_NAME\").Value\r\n    strMatterCode = \"\"\r\n    strMatterName = \"\"\r\n\r\n    f(\"_HSF_CLIENT_CODE\").Value = strClientCode\r\n    f(\"_HSF_CLIENT_NAME\").Value = strClientName\r\n    f(\"_HSF_MATTER_CODE\").Value = strMatterCode\r\n    f(\"_HSF_MATTER_NAME\").Value = strMatterName\r\n  ElseIf gstrCmdExe = sFROM_MATTER Then\r\n    strClientCode = ThisField.ParentForm.Fields(\"CLIENT_CODE\").Value\r\n    strClientName = ThisField.ParentForm.Fields(\"CLIENT_NAME\").Value\r\n    strMatterCode = ThisField.ParentForm.Fields(\"MATTER_CODE\").Value\r\n    strMatterName = ThisField.ParentForm.Fields(\"MATTER_NAME\").Value\r\n\r\n    f(\"_HSF_CLIENT_CODE\").Value = strClientCode\r\n    f(\"_HSF_CLIENT_NAME\").Value = strClientName\r\n    f(\"_HSF_MATTER_CODE\").Value = strMatterCode\r\n    f(\"_HSF_MATTER_NAME\").Value = strMatterName\r\n  Else\r\n    f(\"_HSF_CLIENT_CODE\").Value = gstrClientCode\r\n    f(\"_HSF_CLIENT_NAME\").Value = gstrClientName\r\n    f(\"_HSF_MATTER_CODE\").Value = gstrMatterCode\r\n    f(\"_HSF_MATTER_NAME\").Value = gstrMatterName\r\n  End If\r\n\r\n  ' Load Time Summary lists.\r\n  strCode = f(\"_HSF_TS_LIST_ITEM\").Value\r\n  Call LoadAvailable(hListTSAvail, sSECTION_TIME_SUMMARY, strCode)\r\n  Call LoadSelected(hListTSIncl, sSECTION_TIME_SUMMARY, strCode)\r\n\r\n\r\n  ' Load Time Detail lists.\r\n  strCode = f(\"_HSF_TD_LIST_ITEM\").Value\r\n  Call LoadAvailable(hListTDAvail, sSECTION_TIME_DETAIL, strCode)\r\n  Call LoadSelected(hListTDIncl, sSECTION_TIME_DETAIL, strCode)\r\n\r\n\r\n  ' Load Disbursement Summary lists.\r\n  strCode = f(\"_HSF_DS_LIST_ITEM\").Value\r\n  Call LoadAvailable(hListDSAvail, sSECTION_DISB_SUMMARY, strCode)\r\n  Call LoadSelected(hListDSIncl, sSECTION_DISB_SUMMARY, strCode)\r\n\r\n  ' Load Disbursement Detail lists.\r\n  strCode = f(\"_HSF_DD_LIST_ITEM\").Value\r\n  Call LoadAvailable(hListDDAvail, sSECTION_DISB_DETAIL, strCode)\r\n  Call LoadSelected(hListDDIncl, sSECTION_DISB_DETAIL, strCode)\r\n\r\n  ' Disbursement codes\r\n  strCode = f(\"_HSF_DD_LIST_DISB\").Value\r\n  Call LoadAvailable(hListDDDisbAvail, sSECTION_DISB_DETAIL_DISB_ONLY, strCode)\r\n  Call LoadSelected(hListDDDisbIncl, sSECTION_DISB_DETAIL_DISB_ONLY, strCode)\r\n\r\n  Dim hSQL As New SQLAccess\r\n  Dim strSQL As String\r\n  Dim strResult as string\r\n  \r\n  strSQL = \"SELECT TOP 1 ISNULL(\"\r\n  strSQL = strSQL + \" (SELECT 1 ALLOWED FROM dbo.HBM_PERSNL WHERE PRIVILEGE_LEVEL=1 AND EMPL_UNO =(\" + CStr(UserInfo.EMPL_UNO) + \")\"\r\n  strSQL = strSQL + \" UNION \"\r\n  strSQL = strSQL + \" SELECT 1 ALLOWED FROM dbo.HBA_PERSNL_WKGP A \"\r\n  strSQL = strSQL + \" JOIN dbo.HBL_WORK_GROUP B ON B.WORK_GROUP_UNO = A.WORK_GROUP_UNO \"\r\n  strSQL = strSQL + \" WHERE B.WORK_GROUP_CODE IN ('CMRF','CMED') \"\r\n  strSQL = strSQL + \" AND A.EMPL_UNO = (\" + CStr(UserInfo.EMPL_UNO) + \")\"\r\n  strSQL = strSQL + \" ),0) ALLOWED \"\r\n  strSQL = strSQL + \" ORDER BY 1 DESC \"\r\n\r\n  ' Execute SQL statement.\r\n  hSQL.IssueCommand strSQL\r\n  strResult = Trim$(hSQL.Value(\"ALLOWED\"))\r\n  \r\n    ' Determine if user is in specified workgroup or Privilege Level 1.\r\n  If strResult = \"1\" Then\r\n    gbAccessDiscount = TRUE\r\n  Else\r\n    gbAccessDiscount = FALSE\r\n  End If\r\n\r\n  If gbAccessDiscount Then\r\n    f(\"_HSF_GN_PCT_DISC\").Enabled = TRUE\r\n  Else\r\n    f(\"_HSF_GN_PCT_DISC\").Enabled = FALSE\r\n  End If\r\n  ' Release object handle.\r\n  Set f = Nothing\r\n  Set hListTSAvail = Nothing\r\n  Set hListTSIncl = Nothing\r\n  Set hListTDAvail = Nothing\r\n  Set hListTDIncl = Nothing\r\n  Set hListDSAvail = Nothing\r\n  Set hListDSIncl = Nothing\r\n  Set hListDDAvail = Nothing\r\n  Set hListDDIncl = Nothing\r\n  Set hListDDDisbAvail = Nothing\r\n  Set hListDDDisbIncl = Nothing\r\nEnd Sub\r\n"
+Version=7,5
+ClientSize=785,885
+TableObject="SQLTable",{
+  TableInfo="TBM_MATTER_OPT",100H,2,"CURRENCY_CODE"
+  SQLObject="_HSF_EXC_GBL_FEES",STR,4010H,N,,,,
+  SQLObject="OPT_UNO",INT,8,P,,,,
+  SQLObject="_HSF_USE_ELECTR_LTR_HEAD",STR,4010H,N,,,,
+  SQLObject="_HSF_EXCL_FROM_ELECTR_LTR_HEAD",STR,4010H,N,,,,
+  SQLObject="_HSF_DISPLAY_PT_SUM",STR,4010H,N,,,,
+  SQLObject="_HSF_DISPLAY_PT_DTL",STR,4010H,N,,,,
+  SQLObject="_HSF_USE_DATE_RANGE",STR,4010H,N,,,,
+  SQLObject="_HSF_DATE_RANGE",STR,4010H,N,,,,
+  SQLObject="_HSF_SEPARATE_CHILD",STR,4010H,N,,,,
+  SQLObject="_HSF_USE_SHORT_DATE",STR,4010H,N,,,,
+  SQLObject="_HSF_DISPLAY_EXCH_RATE",STR,4010H,N,,,,
+  SQLObject="_HSF_INC_BOC",STR,4000H,N,,,,
+  SQLObject="_HSF_PRCNT_DISC",REAL,4000H,N,,,,
+  SQLObject="_HSF_TS_INC_MATT_COST_TD",STR,4010H,N,,,,
+  SQLObject="_HSF_TS_MATT_COST_TD_OPT",INT,4000H,N,,,,
+  SQLObject="_HSF_DFLT_LANG_CODE",STR,4010H,F,,"HBL_LANGUAGE","LANGUAGE_CODE",
+  SQLObject="_HSF_DFLT_LANG_CODE.LANGUAGE_CODE",STR,4002H,P,,,,
+  SQLObject="_HSF_DFLT_LANG_CODE.LANGUAGE_DESC",STR,4000H,N,,,,
+  SQLObject="_HSF_USE_CUSTOM_TAXINV",STR,4010H,N,,,,
+  SQLObject="_HSF_CLIENT_LOCK",STR,4010H,N,,,,
+  SQLObject="_HSF_INC_COVER_LTR",STR,4010H,N,,,,
+  SQLObject="_HSF_INC_FIN_DATA",STR,4010H,N,,,,
+  SQLObject="_HSF_INC_CONFIDENTIAL",STR,4010H,N,,,,
+  SQLObject="_HSF_CONFIDENTIAL_TYPE",STR,4010H,N,,,,
+  SQLObject="_HSF_CONFIDENTIAL_OTHER",STR,4000H,N,,,,
+  SQLObject="_HSF_DUAL_SIGNATURE",STR,4010H,N,,,,
+  SQLObject="_HSF_DUAL_SIGNATURE_TYPE",STR,4010H,N,,,,
+  SQLObject="_HSF_DUAL_SIGNATURE_EMPL_UNO",INT,4002H,F,,"HBM_PERSNL","EMPL_UNO",
+  SQLObject="_HSF_DUAL_SIGNATURE_EMPL_UNO.EMPL_UNO",INT,4002H,P,,,,
+  SQLObject="_HSF_DUAL_SIGNATURE_EMPL_UNO.EMPLOYEE_CODE",STR,4018H,C,,,,
+  SQLObject="_HSF_DUAL_SIGNATURE_EMPL_UNO.EMPLOYEE_NAME",STR,4000H,N,,,,
+  SQLObject="_HSF_INC_TIME_SUMMARY",STR,4010H,N,,,,
+  SQLObject="_HSF_TS_SORT_GRP_RANK",STR,4010H,N,,,,
+  SQLObject="_HSF_TS_SORT_GRP_OFFC_DEPT",STR,4010H,N,,,,
+  SQLObject="_HSF_TS_OTH_SUMM_PA",STR,4010H,N,,,,
+  SQLObject="_HSF_TS_OTH_SUMM_ANALYST_PA",STR,4010H,N,,,,
+  SQLObject="_HSF_TS_OTH_DISP_AVG_RATE",STR,4010H,N,,,,
+  SQLObject="_HSF_INC_DISB_SUMMARY",STR,4010H,N,,,,
+  SQLObject="_HSF_DS_SORT_GRP_DISB",STR,4010H,N,,,,
+  SQLObject="_HSF_INC_DISB_DETAIL",STR,4010H,N,,,,
+  SQLObject="_HSF_DD_INC_ALL_DISB",STR,4010H,N,,,,
+  SQLObject="_HSF_INC_TIME_DETAIL",STR,4010H,N,,,,
+  SQLObject="_HSF_TS_LIST_ITEM",STR,4000H,N,,,,
+  SQLObject="_HSF_TD_LIST_ITEM",STR,4000H,N,,,,
+  SQLObject="_HSF_DD_LIST_DISB",STR,4000H,N,,,,
+  SQLObject="_HSF_DD_LIST_ITEM",STR,4000H,N,,,,
+  SQLObject="_HSF_DS_LIST_ITEM",STR,4000H,N,,,,
+}
+CloseAction=1
+Control="CMSEdit",,{
+  Info=34,10,169,21,40080004H
+  Id=511
+  Name="_HSF_CLIENT_CODE"
+  Prompt="Client Code"
+  UsAc=2
+  UsPm=FFFFH
+  UsCh=1000H
+  PAlignment=2
+  MaxChars=-1
+  DataType=0
+}
+Control="CMSEdit",,{
+  Info=34,30,169,21,40080004H
+  Id=513
+  Name="_HSF_MATTER_CODE"
+  Prompt="Matter Code"
+  UsAc=2
+  UsPm=FFFFH
+  UsCh=1000H
+  PAlignment=2
+  MaxChars=-1
+  DataType=0
+}
+Control="CMSCheckBox",,{
+  Info=23,98,200,21,40000000H
+  Id=555
+  Name="_HSF_CHK_DS_INCLDE"
+  Prompt="Include Disbursement Summary?"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  Call ProcessDisbSummarySection(hField)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\n"
+  SQLPath="_HSF_INC_DISB_SUMMARY"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=23,98,200,21,40000000H
+  Id=556
+  Name="_HSF_CHK_DD_INCLDE"
+  Prompt="Include Disbursement Detail?"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  Call ProcessDisbDetailSection(hField)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\n"
+  SQLPath="_HSF_INC_DISB_DETAIL"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=23,98,200,21,40000000H
+  Id=557
+  Name="_HSF_CHK_TD_INCLDE"
+  Prompt="Include Time Detail?"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  Call ProcessTimeDetailSection(hField)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\n"
+  SQLPath="_HSF_INC_TIME_DETAIL"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=23,98,200,21,40000000H
+  Id=523
+  Name="_HSF_CHK_CL_INCLDE"
+  Prompt="Include Cover Letter?"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  Call ProcessCoverLetterSection(hField)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n"
+  SQLPath="_HSF_INC_COVER_LTR"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=23,98,200,21,40000000H
+  Id=546
+  Name="_HSF_CHK_TS_INCLDE"
+  Prompt="Include Time Summary?"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  Call ProcessTimeSummarySection(hField)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\n"
+  SQLPath="_HSF_INC_TIME_SUMMARY"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=32,114,169,21,40000000H
+  Id=517
+  Name="_HSF_CHK_GN_IN_ELH"
+  Prompt="Include Electronic Letterhead"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Determine if include electronic letterhead is selected.\r\n  If hField(\"_HSF_CHK_GN_IN_ELH\").Value = hField(\"_HSF_CHK_GN_IN_ELH\").Checkbox.OnValue Then\r\n    ' Include electronic letterhead selected, thus enable Exclude Cover Letter.\r\n    hField(\"_HSF_CHK_GN_EX_ELH\").Enabled = TRUE\r\n  Else\r\n    hField(\"_HSF_CHK_GN_EX_ELH\").Enabled = FALSE\r\n  End If\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n"
+  SQLPath="_HSF_USE_ELECTR_LTR_HEAD"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSEdit",,{
+  Info=36,670,77,21,4000000EH
+  Id=619
+  Name="_HSF_GN_LANG_CODE"
+  Prompt="Language Code"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Function Validate() As Integer\r\n  Const sDEFAULT_LANGUAGE_CODE As String = \"EN\"\r\n\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Set the default language if none was selected.\r\n  If Trim$(hField(\"_HSF_GN_LANG_CODE\").Value) = \"\" Then\r\n    ' No language code selected, thus set to default.\r\n    hField(\"_HSF_GN_LANG_CODE\").Value = sDEFAULT_LANGUAGE_CODE\r\n  End If\r\n  \r\n  ' Release object handle.\r\n  Set hField = Nothing\r\n\r\n  Validate = TRUE\r\nEnd Function"
+  SQLPath="_HSF_DFLT_LANG_CODE"
+  PAlignment=2
+  PLocation=0
+  MaxChars=2
+  LookupContext={
+    Flags=AH
+    Lookup="_HBL_LANGUAGE"
+    Column="LANGUAGE_CODE"
+  }
+}
+Control="CMSCheckBox",,{
+  Info=50,134,141,21,40000000H
+  Id=522
+  Name="_HSF_CHK_GN_EX_ELH"
+  Prompt="Exclude Cover Letter"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_EXCL_FROM_ELECTR_LTR_HEAD"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=30,140,200,21,40000000H
+  Id=524
+  Name="_HSF_CHK_CL_FIN_DT"
+  Prompt="Include Financial Data"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="\r\n"
+  SQLPath="_HSF_INC_FIN_DATA"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSList",,{
+  Info=21,145,454,314,40002062H
+  Id=576
+  Version=7
+  Name="_HSF_LST_TD_AVAIL"
+  Prompt="List Box"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Column0="Row Uno",66,178H,STR,0,,,-1,0,"COL_000"
+  Column1="DD Name",75,178H,STR,0,,,-1,0,"COL001"
+  Column2="Time Field",218,158H,STR,0,,,-1,0,"COL002"
+  Column3="Description",232,158H,STR,0,,,-1,0,"COL003"
+  Column4="Min Size",56,178H,STR,0,,,-1,0,"COL004"
+  Column5="Max Size",62,178H,STR,0,,,-1,0,"COL005"
+}
+Control="CMSList",,{
+  Info=21,145,454,314,40002062H
+  Id=588
+  Version=7
+  Name="_HSF_LST_DD_AVAIL"
+  Prompt="List Box"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Column0="Row Uno",66,178H,STR,0,,,-1,0,"COL_000"
+  Column1="DD Name",75,178H,STR,0,,,-1,0,"COL001"
+  Column2="Disbursement Field",219,158H,STR,0,,,-1,0,"COL002"
+  Column3="Description",233,158H,STR,0,,,-1,0,"COL003"
+  Column4="Min Size",54,178H,STR,0,,,-1,0,"COL004"
+  Column5="Max Size",57,178H,STR,0,,,-1,0,"COL005"
+}
+Control="CMSList",,{
+  Info=21,145,454,314,40002062H
+  Id=579
+  Version=7
+  Name="_HSF_LST_DS_AVAIL"
+  Prompt="List Box"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Column0="Row Uno",62,178H,STR,0,,,-1,0,"COL_000"
+  Column1="DD Name",75,178H,STR,0,,,-1,0,"COL001"
+  Column2="Disbursement Field",223,158H,STR,0,,,-1,0,"COL002"
+  Column3="Description",229,158H,STR,0,,,-1,0,"COL003"
+  Column4="Min Size",59,178H,STR,0,,,-1,0,"COL004"
+  Column5="Max Size",57,178H,STR,0,,,-1,0,"COL005"
+}
+Control="CMSList",,{
+  Info=21,145,454,314,40002062H
+  Id=570
+  Version=7
+  Name="_HSF_LST_TS_AVAIL"
+  Prompt="List Box"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Column0="Row Uno",66,178H,STR,0,,,-1,0,"COL_000"
+  Column1="DD Name",75,178H,STR,0,,,-1,0,"COL001"
+  Column2="Time Field",220,158H,STR,0,,,-1,0,"COL002"
+  Column3="Description",230,158H,STR,0,,,-1,0,"COL003"
+  Column4="Min Size",52,178H,STR,0,,,-1,0,"COL004"
+  Column5="Max Size",61,178H,STR,0,,,-1,0,"COL005"
+}
+Control="CMSCheckBox",,{
+  Info=30,177,240,21,40000000H
+  Id=548
+  Name="_HSF_CHK_GN_PT_SUM"
+  Prompt="Display Phase/Task Summary"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_DISPLAY_PT_SUM"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=30,188,200,21,40000000H
+  Id=525
+  Name="_HSF_CHK_CL_CNF_IN"
+  Prompt="Include Confidentiality"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Change()\r\n  Const sCONFIDENTIALITY_OTHER As String = \"CO\"\r\n\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_CL_CNF_IN\").Value = hField(\"_HSF_CHK_CL_CNF_IN\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_RB_CL_CNF_TYP\").Enabled = TRUE\r\n\r\n    ' Determine if other type is selected.\r\n    If hField(\"_HSF_RB_CL_CNF_TYP\").Value = sCONFIDENTIALITY_OTHER Then\r\n      ' Other selected.\r\n      hField(\"_HSF_CL_CNF_OTH\").Enabled = TRUE\r\n    Else\r\n      ' Other not selected.\r\n      hField(\"_HSF_CL_CNF_OTH\").Enabled = FALSE\r\n    End If\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_RB_CL_CNF_TYP\").Enabled = FALSE\r\n    hField(\"_HSF_CL_CNF_OTH\").Enabled = FALSE\r\n  End If\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub"
+  SQLPath="_HSF_INC_CONFIDENTIAL"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=30,198,240,21,40000000H
+  Id=547
+  Name="_HSF_CHK_GN_PT_DTL"
+  Prompt="Display Phase/Task within Detail sections"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_DISPLAY_PT_DTL"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSRadioGroup",,{
+  Info=47,215,106,87,40000000H
+  Id=526
+  Name="_HSF_RB_CL_CNF_TYP"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Change()\r\n  Const sCONFIDENTIALITY_OTHER As String = \"CO\"\r\n\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Determine if other type is selected.\r\n  If hField(\"_HSF_RB_CL_CNF_TYP\").Value = sCONFIDENTIALITY_OTHER Then\r\n    ' Other selected.\r\n    hField(\"_HSF_CL_CNF_OTH\").Enabled = TRUE\r\n    hField(\"_HSF_CL_CNF_OTH\").SetFocus\r\n  Else\r\n    ' Other not selected.\r\n    hField(\"_HSF_CL_CNF_OTH\").Enabled = FALSE\r\n  End If\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\n"
+  SQLPath="_HSF_CONFIDENTIAL_TYPE"
+  Buttons="CP;Private\r\nCC;Confidential\r\nCB;Both\r\nCO;Other\r\n"
+}
+Control="CMSCheckBox",,{
+  Info=30,243,200,21,40000000H
+  Id=536
+  Name="_HSF_CHK_GN_DT_RNG"
+  Prompt="Include a date range"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Change()\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_GN_DT_RNG\").Value = hField(\"_HSF_CHK_GN_DT_RNG\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_RB_GN_DT_OPT\").Enabled = TRUE\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_RB_GN_DT_OPT\").Enabled = FALSE\r\n  End If\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\n"
+  SQLPath="_HSF_USE_DATE_RANGE"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSRadioGroup",,{
+  Info=50,263,250,106,42000000H
+  Id=532
+  Name="_HSF_RB_GN_DT_OPT"
+  Prompt="Date range"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_DATE_RANGE"
+  Buttons="LD:Last date of month;MR:Start and end dates of month;TR:Start and end dates of transactions;LT:Last Transaction;"
+}
+Control="CMSCheckBox",,{
+  Info=30,329,200,21,40000000H
+  Id=537
+  Name="_HSF_CHK_CL_DS"
+  Prompt="Include Dual signatures"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Change()\r\n  Const sDUAL_SIGNATURE_OTHER As String = \"OT\"\r\n\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_CL_DS\").Value = hField(\"_HSF_CHK_CL_DS\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_RB_CL_DS_TYPE\").Visible = TRUE\r\n    hField(\"_HSF_BX_CL_DS_OTH\").Visible = TRUE\r\n    hField(\"_HSF_RB_CL_DS_TYPE\").Enabled = TRUE\r\n    hField(\"_HSF_BX_CL_DS_OTH\").Enabled = TRUE\r\n\r\n    ' Determine if other type is selected.\r\n    If hField(\"_HSF_RB_CL_DS_TYPE\").Value = sDUAL_SIGNATURE_OTHER Then\r\n      ' Other selected.\r\n      hField(\"_HSF_CL_DS_OT_EM_C\").Enabled = TRUE\r\n      hField(\"_HSF_CL_DS_OT_EM_N\").Enabled = TRUE\r\n    Else\r\n      ' Other not selected.\r\n      hField(\"_HSF_CL_DS_OT_EM_C\").Enabled = FALSE\r\n      hField(\"_HSF_CL_DS_OT_EM_N\").Enabled = FALSE\r\n    End If\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_RB_CL_DS_TYPE\").Enabled = FALSE\r\n    hField(\"_HSF_BX_CL_DS_OTH\").Enabled = FALSE\r\n    hField(\"_HSF_CL_DS_OT_EM_C\").Enabled = FALSE\r\n    hField(\"_HSF_CL_DS_OT_EM_N\").Enabled = FALSE\r\n  End If\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n"
+  SQLPath="_HSF_DUAL_SIGNATURE"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSRadioGroup",,{
+  Info=46,351,111,51,40000000H
+  Id=540
+  Name="_HSF_RB_CL_DS_TYPE"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Change()\r\n  Const sDUAL_SIGNATURE_OTHER As String = \"OT\"\r\n\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Determine if other type is selected.\r\n  If hField(\"_HSF_RB_CL_DS_TYPE\").Value = sDUAL_SIGNATURE_OTHER Then\r\n    ' Other selected.\r\n    hField(\"_HSF_CL_DS_OT_EM_C\").Enabled = TRUE\r\n    hField(\"_HSF_CL_DS_OT_EM_N\").Enabled = TRUE\r\n    hField(\"_HSF_CL_DS_OT_EM_C\").SetFocus\r\n  Else\r\n    ' Other not selected.\r\n    hField(\"_HSF_CL_DS_OT_EM_C\").Enabled = FALSE\r\n    hField(\"_HSF_CL_DS_OT_EM_N\").Enabled = FALSE\r\n  End If\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\n"
+  SQLPath="_HSF_DUAL_SIGNATURE_TYPE"
+  Buttons="BP;Billing Principal\r\nOT;Other\r\n"
+}
+Control="CMSCheckBox",,{
+  Info=30,462,132,21,40000000H
+  Id=648
+  Name="_HSF_CHK_GN_BOC"
+  Prompt="Include Bill of Costs"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="\r\n"
+  SQLPath="_HSF_INC_BOC"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=21,473,200,21,40000000H
+  Id=568
+  Name="_HSF_CHK_DD_DI_ALL"
+  Prompt="Include all disbursements?"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Change()\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Determine if display all disbursement is ticked.\r\n  If hField(\"_HSF_CHK_DD_DI_ALL\").Value = hField(\"_HSF_CHK_DD_DI_ALL\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_LST_DD_DI_AVL\").Visible = FALSE\r\n    hField(\"_HSF_LST_DD_DI_INC\").Visible = FALSE\r\n    hField(\"_HSF_TXT_DI_AVL\").Visible = FALSE\r\n    hField(\"_HSF_TXT_DI_INC\").Visible = FALSE\r\n\r\n    ' Hide buttons.\r\n    hField(\"_HSF_BTTN_DD_DI_AD\").Visible = FALSE\r\n    hField(\"_HSF_BTTN_DD_DI_DL\").Visible = FALSE\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_LST_DD_DI_AVL\").Visible = TRUE\r\n    hField(\"_HSF_LST_DD_DI_INC\").Visible = TRUE\r\n    hField(\"_HSF_TXT_DI_AVL\").Visible = TRUE\r\n    hField(\"_HSF_TXT_DI_INC\").Visible = TRUE\r\n\r\n    ' Display buttons.\r\n    hField(\"_HSF_BTTN_DD_DI_AD\").Visible = TRUE\r\n    hField(\"_HSF_BTTN_DD_DI_DL\").Visible = TRUE\r\n  End If\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\n"
+  SQLPath="_HSF_DD_INC_ALL_DISB"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=30,484,200,21,40000000H
+  Id=651
+  Name="_HSF_EXC_GBL_FEES"
+  Prompt="Do not co-mingle global fees"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_EXC_GBL_FEES"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=32,482,401,21,40000000H
+  Id=563
+  Name="_HSF_CHK_TS_SRT_RK"
+  Prompt="Sorted by Timekeeper Rank descending; Group by Timekeeper Rank"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_TS_SORT_GRP_RANK"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=32,482,500,21,40000000H
+  Id=553
+  Name="_HSF_CHK_DS_SRT_DB"
+  Prompt="Group by Disbursement Group"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_DS_SORT_GRP_DISB"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=32,503,401,21,40000000H
+  Id=561
+  Name="_HSF_CHK_TS_SRT_OD"
+  Prompt="Sorted by Office Ascending, by Department. Group at Office by Dept."
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_TS_SORT_GRP_OFFC_DEPT"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSList",,{
+  Info=21,524,454,314,40002062H
+  Id=591
+  Version=7
+  Name="_HSF_LST_DD_DI_AVL"
+  Prompt="List Box"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Column0="Disbursement Type",219,158H,STR,0,,,-1,0,"COL_000"
+  Column1="Description",232,158H,STR,0,,,-1,0,"COL001"
+}
+Control="CMSCheckBox",,{
+  Info=33,561,173,21,40000000H
+  Id=566
+  Name="_HSF_CHK_TS_PA"
+  Prompt="Summarise Paralegal"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_TS_PA\").Value = hField(\"_HSF_CHK_TS_PA\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_CHK_TS_AVG_RT\").Enabled = TRUE\r\n  Else\r\n    ' Value is not ticked.\r\n    ' Determine if value is ticked.\r\n    If hField(\"_HSF_CHK_TS_ANL_PA\").Value = hField(\"_HSF_CHK_TS_ANL_PA\").Checkbox.OnValue Then\r\n      ' Value is ticked.\r\n      hField(\"_HSF_CHK_TS_AVG_RT\").Enabled = TRUE\r\n    Else\r\n      ' Value is not ticked.\r\n      hField(\"_HSF_CHK_TS_AVG_RT\").Enabled = FALSE\r\n    End If\r\n  End If\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\n"
+  SQLPath="_HSF_TS_OTH_SUMM_PA"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=33,583,173,21,40000000H
+  Id=565
+  Name="_HSF_CHK_TS_ANL_PA"
+  Prompt="Summarise Analyst Paralegal"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_TS_ANL_PA\").Value = hField(\"_HSF_CHK_TS_ANL_PA\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_CHK_TS_AVG_RT\").Enabled = TRUE\r\n  Else\r\n    ' Value is not ticked.\r\n    ' Determine if value is ticked.\r\n    If hField(\"_HSF_CHK_TS_PA\").Value = hField(\"_HSF_CHK_TS_PA\").Checkbox.OnValue Then\r\n      ' Value is ticked.\r\n      hField(\"_HSF_CHK_TS_AVG_RT\").Enabled = TRUE\r\n    Else\r\n      ' Value is not ticked.\r\n      hField(\"_HSF_CHK_TS_AVG_RT\").Enabled = FALSE\r\n    End If\r\n  End If\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\n"
+  SQLPath="_HSF_TS_OTH_SUMM_ANALYST_PA"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSEdit",,{
+  Font="Microsoft Sans Serif",11,1,0
+  Info=29,790,200,21,1000004H
+  Id=504
+  Name="OPT_UNO"
+  Prompt="OPT_UNO"
+  UsAc=7FFFH
+  UsPm=80H
+  UsCh=1001H
+  SQLPath="OPT_UNO"
+  PAlignment=2
+  MaxChars=-1
+  EAlignment=2
+}
+Control="CMSEdit",,{
+  Info=158,279,166,21,40000004H
+  Id=531
+  Name="_HSF_CL_CNF_OTH"
+  Prompt="Other"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_CONFIDENTIAL_OTHER"
+  PAlignment=2
+  PLocation=0
+  MaxChars=40
+}
+Control="CMSEdit",,{
+  Info=160,378,87,21,4000000EH
+  Id=539
+  Name="_HSF_CL_DS_OT_EM_C"
+  Prompt="Other"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_DUAL_SIGNATURE_EMPL_UNO.EMPLOYEE_CODE"
+  PAlignment=2
+  PLocation=0
+  PromptWidth=77
+  MaxChars=6
+  LookupContext={
+    Flags=AH
+    Lookup="_HBM_PERSNL_TIME"
+    Column="EMPLOYEE_CODE"
+  }
+}
+Control="CMSCheckBox",,{
+  Info=30,399,270,21,40000000H
+  Id=518
+  Name="_HSF_CHK_GN_SEP_CH"
+  Prompt="Separate Child Matters"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_SEPARATE_CHILD"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=30,419,270,21,40000000H
+  Id=519
+  Name="_HSF_CHK_GN_SHT_DT"
+  Prompt="Use US  Date Format"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_USE_SHORT_DATE"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=30,440,270,21,40000000H
+  Id=521
+  Name="_HSF_CHK_GN_EXH_RT"
+  Prompt="Display Exchange Rate information on Tax Invoice"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="\r\n"
+  SQLPath="_HSF_DISPLAY_EXCH_RATE"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSEdit",,{
+  Info=31,506,157,21,40000004H
+  Id=638
+  Name="_HSF_GN_PCT_DISC"
+  Prompt="Percentage Discount"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="\r\n"
+  SQLPath="_HSF_PRCNT_DISC"
+  PAlignment=2
+  PromptWidth=108
+  MaxChars=-1
+  EAlignment=2
+}
+Control="CMSCheckBox",,{
+  Info=33,561,200,21,40000000H
+  Id=632
+  Name="_HSF_CHK_GN_INC_MC"
+  Prompt="Include Matter Cost To Date"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Determine if value is ticked.\r\n  If hField(\"_HSF_CHK_GN_INC_MC\").Value = hField(\"_HSF_CHK_GN_INC_MC\").Checkbox.OnValue Then\r\n    ' Value is ticked.\r\n    hField(\"_HSF_RB_GN_MC_OP\").Enabled = TRUE\r\n  Else\r\n    ' Value is not ticked.\r\n    hField(\"_HSF_RB_GN_MC_OP\").Enabled = FALSE\r\n  End If\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n\r\n"
+  SQLPath="_HSF_TS_INC_MATT_COST_TD"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSRadioGroup",,{
+  Info=54,586,207,50,40000000H
+  Id=635
+  Name="_HSF_RB_GN_MC_OP"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="\r\n"
+  SQLPath="_HSF_TS_MATT_COST_TD_OPT"
+  Buttons="1;Include Matter Cost Summary\r\n2;Include Matter Cost Detail\r\n"
+}
+Control="CMSCheckBox",,{
+  Info=216,561,138,21,40000000H
+  Id=564
+  Name="_HSF_CHK_TS_AVG_RT"
+  Prompt="Display Average Rate"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_TS_OTH_DISP_AVG_RATE"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSEdit",,{
+  Info=30,720,290,21,40000006H
+  Id=624
+  Name="_HSF_GN_CP_MA"
+  Prompt="Copy Invoice Option from Matter #"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  PAlignment=2
+  PromptWidth=175
+  MaxChars=-1
+  DataType=0
+  LookupContext={
+    Flags=AH
+    Lookup="_HSF_MATTER_ACTIVE"
+    Column="MATTER_CODE"
+  }
+}
+Control="CMSCheckBox",,{
+  Info=30,742,200,21,40000000H
+  Id=520
+  Name="_HSF_CHK_GN_CST_TX"
+  Prompt="Use Custom Tax Invoice Format"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_USE_CUSTOM_TAXINV"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSCheckBox",,{
+  Info=30,761,200,21,40000000H
+  Id=597
+  Name="_HSF_CHK_GN_CL_LCK"
+  Prompt="Restrict edits at Matter level"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="\r\n"
+  SQLPath="_HSF_CLIENT_LOCK"
+  CheckedTrigger="Y"
+  UncheckedTrigger="N"
+}
+Control="CMSEdit",,{
+  Info=133,670,167,21,40080004H
+  Id=620
+  Name="_HSF_GN_LANG_DESC"
+  Prompt="Language"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_DFLT_LANG_CODE.LANGUAGE_DESC"
+  PAlignment=2
+  PLocation=0
+  MaxChars=80
+  EditBorder=0
+}
+Control="CMSEdit",,{
+  Info=213,10,383,21,40080004H
+  Id=512
+  Name="_HSF_CLIENT_NAME"
+  Prompt="Edit"
+  UsAc=2
+  UsPm=FFFFH
+  UsCh=1000H
+  PAlignment=2
+  PLocation=0
+  MaxChars=-1
+  EditBorder=0
+  DataType=0
+}
+Control="CMSEdit",,{
+  Info=213,30,383,21,40080004H
+  Id=514
+  Name="_HSF_MATTER_NAME"
+  Prompt="Edit"
+  UsAc=2
+  UsPm=FFFFH
+  UsCh=1000H
+  PAlignment=2
+  PLocation=0
+  MaxChars=-1
+  EditBorder=0
+  DataType=0
+}
+Control="CMSEdit",,{
+  Info=253,378,117,21,40080004H
+  Id=543
+  Name="_HSF_CL_DS_OT_EM_N"
+  Prompt="Empl Name for reporting"
+  UsAc=2
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_DUAL_SIGNATURE_EMPL_UNO.EMPLOYEE_NAME"
+  PAlignment=2
+  PLocation=0
+  PromptWidth=121
+  MaxChars=40
+  EditBorder=0
+}
+Control="CMSList",,{
+  Info=523,145,225,314,40002062H
+  Id=587
+  Version=7
+  Name="_HSF_LST_DD_INCL"
+  Prompt="List Box"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Column0="Row Uno",67,178H,STR,0,,,-1,0,"COL_000"
+  Column1="DD Name",75,178H,STR,0,,,-1,0,"COL001"
+  Column2="Disbursement Field",218,158H,STR,0,,,-1,0,"COL002"
+  Column3="Description",232,178H,STR,0,,,-1,0,"COL003"
+  Column4="Min Size",55,178H,STR,0,,,-1,0,"COL004"
+  Column5="Max Size",58,178H,STR,0,,,-1,0,"COL005"
+}
+Control="CMSList",,{
+  Info=523,145,225,314,40002062H
+  Id=575
+  Version=7
+  Name="_HSF_LST_TD_INCL"
+  Prompt="List Box"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Column0="Row Uno",66,178H,STR,0,,,-1,0,"COL_000"
+  Column1="DD Name",75,178H,STR,0,,,-1,0,"COL001"
+  Column2="Time Field",220,158H,STR,0,,,-1,0,"COL002"
+  Column3="Description",230,178H,STR,0,,,-1,0,"COL003"
+  Column4="Min Size",53,178H,STR,0,,,-1,0,"COL004"
+  Column5="Max Size",56,178H,STR,0,,,-1,0,"COL005"
+}
+Control="CMSList",,{
+  Info=523,145,225,314,40002062H
+  Id=580
+  Version=7
+  Name="_HSF_LST_DS_INCL"
+  Prompt="List Box"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Column0="Row Uno",65,178H,STR,0,,,-1,0,"COL_000"
+  Column1="DD Name",75,178H,STR,0,,,-1,0,"COL001"
+  Column2="Disbursement Field",220,158H,STR,0,,,-1,0,"COL002"
+  Column3="Description",231,178H,STR,0,,,-1,0,"COL003"
+  Column4="Min Size",55,178H,STR,0,,,-1,0,"COL004"
+  Column5="Max Size",58,178H,STR,0,,,-1,0,"COL005"
+}
+Control="CMSList",,{
+  Info=523,145,225,314,40002062H
+  Id=571
+  Version=7
+  Name="_HSF_LST_TS_INCL"
+  Prompt="List Box"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Column0="Row Uno",66,178H,STR,0,,,-1,0,"COL_000"
+  Column1="DD Name",75,178H,STR,0,,,-1,0,"COL001"
+  Column2="Time Field",220,158H,STR,0,,,-1,0,"COL002"
+  Column3="Description",230,178H,STR,0,,,-1,0,"COL003"
+  Column4="Min Size",53,178H,STR,0,,,-1,0,"COL004"
+  Column5="Max Size",59,178H,STR,0,,,-1,0,"COL005"
+}
+Control="CMSList",,{
+  Info=523,524,225,314,40002062H
+  Id=592
+  Version=7
+  Name="_HSF_LST_DD_DI_INC"
+  Prompt="List Box"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Column0="Disbursement Type",220,158H,STR,0,,,-1,0,"COL_000"
+  Column1="Description",229,178H,STR,0,,,-1,0,"COL001"
+}
+Control="CMSEdit",,{
+  Info=1152,524,161,68,40000584H
+  Id=559
+  Name="_HSF_TS_LIST_ITEM"
+  Prompt="Summary - Time breakdown"
+  RelFlags=12
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_TS_LIST_ITEM"
+  PLocation=1
+  PromptWidth=137
+  MaxChars=65535
+}
+Control="CMSEdit",,{
+  Info=1152,594,161,68,40000584H
+  Id=558
+  Name="_HSF_TD_LIST_ITEM"
+  Prompt="Detail - Time breakdown"
+  RelFlags=12
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_TD_LIST_ITEM"
+  PLocation=1
+  PromptWidth=120
+  MaxChars=65535
+}
+Control="CMSEdit",,{
+  Info=1151,664,161,68,40000584H
+  Id=551
+  Name="_HSF_DS_LIST_ITEM"
+  Prompt="Summary - Disb breakdown"
+  RelFlags=12
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_DS_LIST_ITEM"
+  PLocation=1
+  PromptWidth=135
+  MaxChars=65535
+}
+Control="CMSEdit",,{
+  Info=1152,734,161,68,40000584H
+  Id=550
+  Name="_HSF_DD_ITEM_LIST"
+  Prompt="Detail - Disb breakdown"
+  RelFlags=12
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_DD_LIST_ITEM"
+  PLocation=1
+  PromptWidth=118
+  MaxChars=65535
+}
+Control="CMSEdit",,{
+  Info=1153,804,161,68,40000584H
+  Id=549
+  Name="_HSF_DD_LIST_DISB"
+  Prompt="Detail - Disb list"
+  RelFlags=12
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  SQLPath="_HSF_DD_LIST_DISB"
+  PLocation=1
+  MaxChars=65535
+}
+Control="CMSPush",,{
+  Info=22,64,80,25,40000001H
+  Id=505
+  Name="_HSF_BTTN_GN"
+  Prompt="&General"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_GENERAL As String = \"GN\"\r\n  Const sSECTION_COVER_LETTER As String = \"CL\"\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  Call SectionArea(hField, sSECTION_GENERAL)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n"
+}
+Control="CMSPush",,{
+  Info=30,786,126,25,40000001H
+  Id=616
+  Name="_HSF_BTTN_GN_AP_MA"
+  Prompt="&Apply to all Matters"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Dim hField As Fields\r\n\r\n  Dim strClientCode As String\r\n  Dim strOptUno As String\r\n  Dim nResponse As Integer\r\n  Dim strMsg As String\r\n  Dim strRecCount As String\r\n\r\n  Dim strSQL As String\r\n  Dim hSQL As New SQLAccess\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Obtain client code and option key.\r\n  strOptUno = Trim$(hField(\"OPT_UNO\").Value)\r\n  strClientCode = Trim$(hField(\"_HSF_CLIENT_CODE\").Value)\r\n\r\n  ' Determine if client code is provided.\r\n  If strClientCode <> \"\" Then\r\n    ' Find number of matters that will be affected.\r\n    strSQL = \"SELECT COUNT(*) AS MATTER_COUNT\"\r\n    strSQL = strSQL + \" FROM HBM_MATTER M INNER JOIN TBM_MATTER TM\"\r\n    strSQL = strSQL + \" ON M.MATTER_UNO = TM.MATTER_UNO INNER JOIN HBM_CLIENT C\"\r\n    strSQL = strSQL + \" ON M.CLIENT_UNO = C.CLIENT_UNO\"\r\n    strSQL = strSQL + \" WHERE C.CLIENT_CODE = '\" + strClientCode + \"'\"\r\n\r\n    ' Execute SQL statement.\r\n    hSQL.IssueCommand strSQL\r\n\r\n    strRecCount = hSQL.Value(\"MATTER_COUNT\")\r\n\r\n    ' Build and display message for user confirmation.\r\n    strMsg = \"You are about to update \" + strRecCount + \" active and inactive matters with the current option settings. Do you wish to proceed?\"\r\n    nResponse = YesNoMessage(strMsg)\r\n\r\n    ' Determine user response.\r\n    If nResponse = BUTTON_YES Then\r\n      ' User confirmed overwriting, thus set the matters option setting to the client.\r\n      strSQL = \"UPDATE TM\"\r\n      strSQL = strSQL + \" SET OPT_UNO = \" + strOptUno\r\n      strSQL = strSQL + \" FROM HBM_MATTER M INNER JOIN TBM_MATTER TM\"\r\n      strSQL = strSQL + \" ON M.MATTER_UNO = TM.MATTER_UNO INNER JOIN HBM_CLIENT C\"\r\n      strSQL = strSQL + \" ON M.CLIENT_UNO = C.CLIENT_UNO\"\r\n      strSQL = strSQL + \" WHERE C.CLIENT_CODE = '\" + strClientCode + \"'\"\r\n\r\n      ' Execute SQL statement.\r\n      hSQL.IssueCommand strSQL\r\n    End If    \r\n  End If\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\n  Set hSQL = Nothing\r\nEnd Sub\r\n"
+}
+Control="CMSPush",,{
+  Info=101,64,80,25,40000001H
+  Id=506
+  Name="_HSF_BTTN_CL"
+  Prompt="Co&ver Letter"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_GENERAL As String = \"GN\"\r\n  Const sSECTION_COVER_LETTER As String = \"CL\"\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  Call SectionArea(hField, sSECTION_COVER_LETTER)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n"
+}
+Control="CMSPush",,{
+  Info=180,64,80,25,40000001H
+  Id=507
+  Name="_HSF_BTTN_TS"
+  Prompt="&Time Summary"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_GENERAL As String = \"GN\"\r\n  Const sSECTION_COVER_LETTER As String = \"CL\"\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  Call SectionArea(hField, sSECTION_TIME_SUMMARY)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n"
+}
+Control="CMSPush",,{
+  Info=259,64,80,25,40000001H
+  Id=508
+  Name="_HSF_BTTN_TD"
+  Prompt="T&ime Detail"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_GENERAL As String = \"GN\"\r\n  Const sSECTION_COVER_LETTER As String = \"CL\"\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  Call SectionArea(hField, sSECTION_TIME_DETAIL)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub\r\n"
+}
+Control="CMSPush",,{
+  Info=322,720,69,21,40000001H
+  Id=625
+  Name="_HSF_BTTN_GN_CP_MA"
+  Prompt="Co&py"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Public gstrCmdExe As String\r\nPublic gstrBillMUno As String\r\n\r\nSub Click()\r\n  Const sFROM_CLIENT As String = \"TBMCLNT\"\r\n  Const sFROM_MATTER As String = \"TBMMATT3\"\r\n\r\n  Dim hField As Fields\r\n  Dim hSQL As New SQLAccess\r\n  Dim strSQL As String\r\n\r\n  Dim strFromMatterCode As String\r\n  Dim strToMatterCode As String\r\n\r\n  Dim strMsg As String\r\n  Dim nResponse As String\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  ' Obtain matter codes.\r\n  strToMatterCode = Trim$(hField(\"_HSF_MATTER_CODE\").Value)\r\n  strFromMatterCode = Trim$(hField(\"_HSF_GN_CP_MA\").Value)\r\n\r\n  ' Determine if a copy matter code is provided.\r\n  If (strFromMatterCode <> \"\" And strToMatterCode <> \"\") Then\r\n    ' Obtain confirmation from user.\r\n    ' Build and display confirmation.\r\n    strMsg = \"You are about to copy option settings from another matter (\" + strFromMatterCode + \") to the existing matter\"\r\n\r\n    ' Determine where the screen is launched from and set the header information.\r\n    If (gstrCmdExe <> sFROM_CLIENT And gstrCmdExe <> sFROM_MATTER) Then\r\n      ' Calling from the billing desktop.\r\n      ' Determine if a matter billing key is provided.\r\n      If gstrBillMUno <> \"\" Then\r\n        strMsg = strMsg + \" and to the existing bill\"\r\n      End If\r\n    End If  ' Matter Billing Provided Check\r\n\r\n    strMsg = strMsg + \". This WILL overwrite the current option settings permanently. Do you wish to continue?\"\r\n\r\n    nResponse = YesNoMessage(strMsg)\r\n\r\n    ' Determine user response.\r\n    If nResponse = BUTTON_YES Then\r\n      ' User confirms that option will be overwritten.\r\n      strSQL = \"EXECUTE usp_HSF_Copy_Option_Setting\"\r\n      strSQL = strSQL + \" @strFromMatterCode = '\" + strFromMatterCode + \"',\"\r\n\r\n      ' Determine where the screen is launched from and set the header information.\r\n      If (gstrCmdExe <> sFROM_CLIENT And gstrCmdExe <> sFROM_MATTER) Then\r\n        ' Calling from the billing desktop.\r\n        ' Determine if a matter billing key is provided.\r\n        If gstrBillMUno <> \"\" Then\r\n          strSQL = strSQL + \" @strApplyToInvoice = 'Y',\"\r\n          strSQL = strSQL + \" @nBillMUno = \" + gstrBillMUno + \",\"\r\n        End If\r\n      End If  ' Matter Billing Provided Check\r\n\r\n      strSQL = strSQL + \" @strToMatterCode = '\" + strToMatterCode + \"'\"\r\n\r\n      ' Execute SQL statement.\r\n      hSQL.IssueCommand strSQL\r\n\r\n      strMsg = hSQL.Value(\"RETURN_VALUE\")\r\n\r\n      ' Determine the return code.\r\n      If CLng(hSQL.Value(\"RETURN_CODE\")) <> 0 Then\r\n        ' Error occur.\r\n        ErrorMessage strMsg\r\n      Else\r\n        ' No error occur in the copy process.\r\n        InfoMessage strMsg\r\n\r\n        ' Automatically cancel screen any changes - click CANCEL button.\r\n        SendKeysUAC \"%C\"\r\n      End If\r\n    End If  ' User Response Check\r\n  Else\r\n    ' Either From or To matter is not provided, thus display error message.\r\n    strMsg = \"A matter code has not been provided. Please provide a matter code and try again.\"\r\n\r\n    ErrorMessage strMsg\r\n  End If  ' Launch From Billing Desktop Check\r\n \r\n  ' Release object handle.\r\n  Set hField = Nothing\r\n  Set hSQL = Nothing\r\nEnd Sub\r\n"
+}
+Control="CMSPush",,{
+  Info=338,64,80,25,40000001H
+  Id=509
+  Name="_HSF_BTTN_DS"
+  Prompt="Dis&b. Summary"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_GENERAL As String = \"GN\"\r\n  Const sSECTION_COVER_LETTER As String = \"CL\"\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  Call SectionArea(hField, sSECTION_DISB_SUMMARY)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub"
+}
+Control="CMSPush",,{
+  Info=417,64,80,25,40000001H
+  Id=510
+  Name="_HSF_BTTN_DD"
+  Prompt="Disb. De&tail"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_GENERAL As String = \"GN\"\r\n  Const sSECTION_COVER_LETTER As String = \"CL\"\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n\r\n  Dim hField As Fields\r\n\r\n  ' Obtain object handle.\r\n  Set hField = ThisField.ParentForm.Fields\r\n\r\n  Call SectionArea(hField, sSECTION_DISB_DETAIL)\r\n\r\n  ' Release object handle.\r\n  Set hField = Nothing\r\nEnd Sub"
+}
+Control="CMSPush",,{
+  Info=484,257,30,25,40000001H
+  Id=581
+  Name="_HSF_BTTN_DS_ADD"
+  Prompt=">>"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n\r\n  Dim hSourceList As List\r\n  Dim hDestinationList As List\r\n  Dim hField As Fields\r\n  Dim strData As String\r\n\r\n  Set hField = ThisField.ParentForm.Fields\r\n  Set hSourceList = hField(\"_HSF_LST_DS_AVAIL\").List\r\n  Set hDestinationList = hField(\"_HSF_LST_DS_INCL\").List\r\n\r\n  ' Set included list.\r\n  Call AllocateDeallocateIncludeList(hSourceList, hDestinationList, sSECTION_DISB_SUMMARY)\r\n\r\n  ' Rebuild and set item list.\r\n  strData = MakeIncludeString(hDestinationList, sSECTION_DISB_SUMMARY)\r\n  hField(\"_HSF_DS_LIST_ITEM\").Value = strData\r\n\r\n  ' Reset handles.\r\n  Set hField = Nothing\r\n  Set hSourceList = Nothing\r\n  Set hDestinationList = Nothing\r\nEnd Sub\r\n\r\n"
+}
+Control="CMSPush",,{
+  Info=484,257,30,25,40000001H
+  Id=589
+  Name="_HSF_BTTN_DD_ADD"
+  Prompt=">>"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n\r\n  Dim hSourceList As List\r\n  Dim hDestinationList As List\r\n  Dim hField As Fields\r\n  Dim strData As String\r\n\r\n  Set hField = ThisField.ParentForm.Fields\r\n  Set hSourceList = hField(\"_HSF_LST_DD_AVAIL\").List\r\n  Set hDestinationList = hField(\"_HSF_LST_DD_INCL\").List\r\n\r\n  ' Set included list.\r\n  Call AllocateDeallocateIncludeList(hSourceList, hDestinationList, sSECTION_DISB_DETAIL)\r\n\r\n  ' Rebuild and set item list.\r\n  strData = MakeIncludeString(hDestinationList, sSECTION_DISB_DETAIL)\r\n  hField(\"_HSF_DD_LIST_ITEM\").Value = strData\r\n\r\n  ' Reset handles.\r\n  Set hField = Nothing\r\n  Set hSourceList = Nothing\r\n  Set hDestinationList = Nothing\r\nEnd Sub\r\n\r\n"
+}
+Control="CMSPush",,{
+  Info=484,257,30,25,40000001H
+  Id=573
+  Name="_HSF_BTTN_TS_ADD"
+  Prompt=">>"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n\r\n  Dim hSourceList As List\r\n  Dim hDestinationList As List\r\n  Dim hField As Fields\r\n  Dim strData As String\r\n\r\n  Set hField = ThisField.ParentForm.Fields\r\n  Set hSourceList = hField(\"_HSF_LST_TS_AVAIL\").List\r\n  Set hDestinationList = hField(\"_HSF_LST_TS_INCL\").List\r\n\r\n  ' Set included list.\r\n  Call AllocateDeallocateIncludeList(hSourceList, hDestinationList, sSECTION_TIME_SUMMARY)\r\n\r\n  ' Rebuild and set item list.\r\n  strData = MakeIncludeString(hDestinationList, sSECTION_TIME_SUMMARY)\r\n  hField(\"_HSF_TS_LIST_ITEM\").Value = strData\r\n\r\n  ' Reset handles.\r\n  Set hField = Nothing\r\n  Set hSourceList = Nothing\r\n  Set hDestinationList = Nothing\r\nEnd Sub\r\n\r\n"
+}
+Control="CMSPush",,{
+  Info=484,257,30,25,40000001H
+  Id=577
+  Name="_HSF_BTTN_TD_ADD"
+  Prompt=">>"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n\r\n  Dim hSourceList As List\r\n  Dim hDestinationList As List\r\n  Dim hField As Fields\r\n  Dim strData As String\r\n\r\n  Set hField = ThisField.ParentForm.Fields\r\n  Set hSourceList = hField(\"_HSF_LST_TD_AVAIL\").List\r\n  Set hDestinationList = hField(\"_HSF_LST_TD_INCL\").List\r\n\r\n  ' Set included list.\r\n  Call AllocateDeallocateIncludeList(hSourceList, hDestinationList, sSECTION_TIME_DETAIL)\r\n\r\n  ' Rebuild and set item list.\r\n  strData = MakeIncludeString(hDestinationList, sSECTION_TIME_DETAIL)\r\n  hField(\"_HSF_TD_LIST_ITEM\").Value = strData\r\n\r\n  ' Reset handles.\r\n  Set hField = Nothing\r\n  Set hSourceList = Nothing\r\n  Set hDestinationList = Nothing\r\nEnd Sub\r\n\r\n"
+}
+Control="CMSPush",,{
+  Info=484,301,30,25,40000001H
+  Id=590
+  Name="_HSF_BTTN_DD_DEL"
+  Prompt="<<"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_DISB_DETAIL As String = \"DD\"\r\n\r\n  Dim hSourceList As List\r\n  Dim hDestinationList As List\r\n  Dim hField As Fields\r\n  Dim strData As String\r\n\r\n  Set hField = ThisField.ParentForm.Fields\r\n  Set hSourceList = hField(\"_HSF_LST_DD_INCL\").List\r\n  Set hDestinationList = hField(\"_HSF_LST_DD_AVAIL\").List\r\n\r\n  ' Remove selection from included list.\r\n  Call AllocateDeallocateIncludeList(hSourceList, hDestinationList, sSECTION_DISB_DETAIL)\r\n\r\n  ' Rebuild and set item list.\r\n  strData = MakeIncludeString(hSourceList, sSECTION_DISB_DETAIL)\r\n  hField(\"_HSF_DD_LIST_ITEM\").Value = strData\r\n\r\n  ' Reload available lists.\r\n  Call LoadAvailable(hDestinationList, sSECTION_DISB_DETAIL, strData)\r\n\r\n  ' Reset handles.\r\n  Set hField = Nothing\r\n  Set hSourceList = Nothing\r\n  Set hDestinationList = Nothing\r\nEnd Sub\r\n\r\n"
+  PictureLoc=-1
+}
+Control="CMSPush",,{
+  Info=484,301,30,25,40000001H
+  Id=582
+  Name="_HSF_BTTN_DS_DEL"
+  Prompt="<<"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_DISB_SUMMARY As String = \"DS\"\r\n\r\n  Dim hSourceList As List\r\n  Dim hDestinationList As List\r\n  Dim hField As Fields\r\n  Dim strData As String\r\n\r\n  Set hField = ThisField.ParentForm.Fields\r\n  Set hSourceList = hField(\"_HSF_LST_DS_INCL\").List\r\n  Set hDestinationList = hField(\"_HSF_LST_DS_AVAIL\").List\r\n\r\n  ' Remove selection from included list.\r\n  Call AllocateDeallocateIncludeList(hSourceList, hDestinationList, sSECTION_DISB_SUMMARY)\r\n\r\n  ' Rebuild and set item list.\r\n  strData = MakeIncludeString(hSourceList, sSECTION_DISB_SUMMARY)\r\n  hField(\"_HSF_DS_LIST_ITEM\").Value = strData\r\n\r\n  ' Reload available lists.\r\n  Call LoadAvailable(hDestinationList, sSECTION_DISB_SUMMARY, strData)\r\n\r\n  ' Reset handles.\r\n  Set hField = Nothing\r\n  Set hSourceList = Nothing\r\n  Set hDestinationList = Nothing\r\nEnd Sub\r\n\r\n"
+}
+Control="CMSPush",,{
+  Info=484,301,30,25,40000001H
+  Id=574
+  Name="_HSF_BTTN_TS_DEL"
+  Prompt="<<"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_TIME_SUMMARY As String = \"TS\"\r\n\r\n  Dim hSourceList As List\r\n  Dim hDestinationList As List\r\n  Dim hField As Fields\r\n  Dim strData As String\r\n\r\n  Set hField = ThisField.ParentForm.Fields\r\n  Set hSourceList = hField(\"_HSF_LST_TS_INCL\").List\r\n  Set hDestinationList = hField(\"_HSF_LST_TS_AVAIL\").List\r\n\r\n  ' Remove selection from included list.\r\n  Call AllocateDeallocateIncludeList(hSourceList, hDestinationList, sSECTION_TIME_SUMMARY)\r\n\r\n  ' Rebuild and set item list.\r\n  strData = MakeIncludeString(hSourceList, sSECTION_TIME_SUMMARY)\r\n  hField(\"_HSF_TS_LIST_ITEM\").Value = strData\r\n\r\n  ' Reload available lists.\r\n  Call LoadAvailable(hDestinationList, sSECTION_TIME_SUMMARY, strData)\r\n\r\n  ' Reset handles.\r\n  Set hField = Nothing\r\n  Set hSourceList = Nothing\r\n  Set hDestinationList = Nothing\r\nEnd Sub\r\n"
+}
+Control="CMSPush",,{
+  Info=484,301,30,25,40000001H
+  Id=578
+  Name="_HSF_BTTN_TD_DEL"
+  Prompt="<<"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_TIME_DETAIL As String = \"TD\"\r\n\r\n  Dim hSourceList As List\r\n  Dim hDestinationList As List\r\n  Dim hField As Fields\r\n  Dim strData As String\r\n\r\n  Set hField = ThisField.ParentForm.Fields\r\n  Set hSourceList = hField(\"_HSF_LST_TD_INCL\").List\r\n  Set hDestinationList = hField(\"_HSF_LST_TD_AVAIL\").List\r\n\r\n  ' Remove selection from included list.\r\n  Call AllocateDeallocateIncludeList(hSourceList, hDestinationList, sSECTION_TIME_DETAIL)\r\n\r\n  ' Rebuild and set item list.\r\n  strData = MakeIncludeString(hSourceList, sSECTION_TIME_DETAIL)\r\n  hField(\"_HSF_TD_LIST_ITEM\").Value = strData\r\n\r\n  ' Reload available lists.\r\n  Call LoadAvailable(hDestinationList, sSECTION_TIME_DETAIL, strData)\r\n\r\n  ' Reset handles.\r\n  Set hField = Nothing\r\n  Set hSourceList = Nothing\r\n  Set hDestinationList = Nothing\r\nEnd Sub\r\n\r\n"
+}
+Control="CMSPush",,{
+  Info=484,667,30,25,40000001H
+  Id=593
+  Name="_HSF_BTTN_DD_DI_AD"
+  Prompt=">>"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_DISB_DETAIL_DISB_ONLY As String = \"DDDI\"\r\n\r\n  Dim hSourceList As List\r\n  Dim hDestinationList As List\r\n  Dim hField As Fields\r\n  Dim strData As String\r\n\r\n  Set hField = ThisField.ParentForm.Fields\r\n  Set hSourceList = hField(\"_HSF_LST_DD_DI_AVL\").List\r\n  Set hDestinationList = hField(\"_HSF_LST_DD_DI_INC\").List\r\n\r\n  ' Set included list.\r\n  Call AllocateDeallocateIncludeList(hSourceList, hDestinationList, sSECTION_DISB_DETAIL_DISB_ONLY)\r\n\r\n  ' Rebuild and set item list.\r\n  strData = MakeIncludeString(hDestinationList, sSECTION_DISB_DETAIL_DISB_ONLY)\r\n  hField(\"_HSF_DD_LIST_DISB\").Value = strData\r\n\r\n  ' Reset handles.\r\n  Set hField = Nothing\r\n  Set hSourceList = Nothing\r\n  Set hDestinationList = Nothing\r\nEnd Sub\r\n\r\n"
+}
+Control="CMSPush",,{
+  Info=484,707,30,25,40000001H
+  Id=594
+  Name="_HSF_BTTN_DD_DI_DL"
+  Prompt="<<"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="Sub Click()\r\n  Const sSECTION_DISB_DETAIL_DISB_ONLY As String = \"DDDI\"\r\n\r\n  Dim hSourceList As List\r\n  Dim hDestinationList As List\r\n  Dim hField As Fields\r\n  Dim strData As String\r\n\r\n  Set hField = ThisField.ParentForm.Fields\r\n  Set hSourceList = hField(\"_HSF_LST_DD_DI_INC\").List\r\n  Set hDestinationList = hField(\"_HSF_LST_DD_DI_AVL\").List\r\n\r\n  ' Remove selection from included list.\r\n  Call AllocateDeallocateIncludeList(hSourceList, hDestinationList, sSECTION_DISB_DETAIL_DISB_ONLY)\r\n\r\n  ' Rebuild and set item list.\r\n  strData = MakeIncludeString(hSourceList, sSECTION_DISB_DETAIL_DISB_ONLY)\r\n  hField(\"_HSF_DD_LIST_DISB\").Value = strData\r\n\r\n  ' Reload available lists.\r\n  Call LoadAvailable(hDestinationList, sSECTION_DISB_DETAIL_DISB_ONLY, strData)\r\n\r\n  ' Reset handles.\r\n  Set hField = Nothing\r\n  Set hSourceList = Nothing\r\n  Set hDestinationList = Nothing\r\nEnd Sub\r\n\r\n"
+}
+Control="CMSPush",,{
+  Info=607,850,80,25,1
+  Id=1
+  Name="OK"
+  UsAc=7FFFH
+  UsPm=1FH
+  UsCh=1000H
+  Script="\r\n"
+}
+Control="CMSPush",,{
+  Info=691,850,80,25,1
+  Id=2
+  Name="CANCEL"
+  UsAc=7FFFH
+  UsPm=1FH
+  UsCh=1000H
+}
+Control="CMSPush",,{
+  Info=691,850,80,25,1
+  Id=200
+  Name="CLOSE"
+  UsAc=7FFFH
+  UsPm=1FH
+  UsCh=1000H
+}
+Control="CMSBox",,{
+  Info=156,351,227,51,40000001H
+  Id=569
+  Name="_HSF_BX_CL_DS_OTH"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSText",,{
+  Font="Tahoma",15,1,0
+  Align=1
+  Info=21,124,454,25,40000001H
+  Id=583
+  Name="_HSF_TXT_AVAIL"
+  Prompt="Static Text"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Value="Available"
+}
+Control="CMSText",,{
+  Font="Tahoma",15,1,0
+  Align=1
+  Info=523,124,225,25,40000001H
+  Id=584
+  Name="_HSF_TXT_INCL"
+  Prompt="Static Text"
+  UsAc=7FFFFFFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Value="Included"
+}
+Control="CMSBox",,{
+  Info=21,463,726,68,40000001H
+  Id=585
+  Name="_HSF_BX_GRPING_ORD"
+  Prompt="Grouping Order"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSBox",,{
+  Info=21,543,358,98,40000001H
+  Id=586
+  Name="_HSF_BX_PL"
+  Prompt="Paralegal Options"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSText",,{
+  Font="Tahoma",15,1,0
+  Align=1
+  Info=21,496,454,25,40000001H
+  Id=595
+  Name="_HSF_TXT_DI_AVL"
+  Prompt="Static Text"
+  UsAc=7FFFFFFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Value="Available"
+}
+Control="CMSText",,{
+  Font="Tahoma",15,1,0
+  Align=1
+  Info=523,496,225,25,40000001H
+  Id=596
+  Name="_HSF_TXT_DI_INC"
+  Prompt="Static Text"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Value="Summary Output Only"
+}
+Control="CMSBox",,{
+  Info=23,101,374,57,40000001H
+  Id=607
+  Name="_HSF_BX_GN_ELH"
+  Prompt="Electronic Letterhead"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSBox",,{
+  Info=23,161,374,64,40000001H
+  Id=608
+  Name="_HSF_BX_GN_PT"
+  Prompt="Phase/Task"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSBox",,{
+  Info=23,381,374,158,40000001H
+  Id=609
+  Name="_HSF_BX_GN_GS"
+  Prompt="General Settings"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSBox",,{
+  Info=23,228,374,149,40000001H
+  Id=614
+  Name="_HSF_BX_GN_DT_RNG"
+  Prompt="Date Range"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSBox",,{
+  Info=23,726,374,93,40000001H
+  Id=615
+  Name="_HSF_BX_GN_CLS"
+  Prompt="Client Specific Settings"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSBox",,{
+  Info=23,650,374,47,40000001H
+  Id=618
+  Name="_HSF_BX_GN_LNS"
+  Prompt="Language Selection"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSBox",,{
+  Info=22,126,374,43,40000001H
+  Id=621
+  Name="_HSF_BX_CL_GS"
+  Prompt="General Settings"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Script="\r\n"
+}
+Control="CMSBox",,{
+  Info=22,172,374,138,40000001H
+  Id=622
+  Name="_HSF_BX_CL_CF"
+  Prompt="Confidentiality"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSBox",,{
+  Info=22,313,374,100,40000001H
+  Id=623
+  Name="_HSF_BX_CL_DS"
+  Prompt="Signatures"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSBox",,{
+  Info=22,704,374,44,40000001H
+  Id=626
+  Name="_HSF_BX_GN_CP_MA"
+  Prompt="Invoice Option Settings"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSBox",,{
+  Info=23,544,374,104,40000001H
+  Id=634
+  Name="_HSF_BX_GN_MC"
+  Prompt="Matter Cost Information"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+Control="CMSText",,{
+  Align=2
+  Info=677,30,91,25,40000001H
+  Id=647
+  Name="_TXT_VERSION"
+  Prompt="Static Text"
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+  Value="version 8.2.4"
+}
+Control="CMSBox",,{
+  Info=20,4,757,55,40000001H
+  Id=515
+  Name="_HSF_BX_HEADER"
+  RelFlags=1
+  UsAc=7FFFH
+  UsPm=FFFFH
+  UsCh=1000H
+}
+
+
+(1 row affected)
+
+
+Completion time: 2026-10-23T12:26:04.1659456+01:00

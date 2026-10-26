@@ -1,0 +1,10 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="Test" />
+  </Configurations>
+  <Project Path="RPTToSpreadsheet/RPTToSpreadsheet.csproj">
+    <Platform Solution="Test|*" Project="x64" />
+  </Project>
+</Solution>

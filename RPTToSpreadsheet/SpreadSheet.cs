@@ -15,7 +15,7 @@ namespace RPTToSpreadsheet
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
 
-        public async Task CreateSpreadsheet(List<Control> controls, string fileName)
+        public async Task<FileInfo> CreateSpreadsheet(List<Control> controls, string fileName)
         {
             ExcelPackage.License.SetNonCommercialPersonal("Dirt");
             
@@ -27,6 +27,8 @@ namespace RPTToSpreadsheet
             var file = new FileInfo(saveDirectory + "\\" + fileName);
 
             await SaveExcelFile(controls, file);
+
+            return file;
         }
 
         private static async Task SaveExcelFile(List<Control> controls, FileInfo file)
@@ -66,6 +68,8 @@ namespace RPTToSpreadsheet
 
 
                 await package.SaveAsync();
+
+                
             }
         }  
     }

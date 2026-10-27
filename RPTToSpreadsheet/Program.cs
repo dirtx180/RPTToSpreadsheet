@@ -1,6 +1,8 @@
 using OfficeOpenXml;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+
 
 namespace RPTToSpreadsheet
 {
@@ -41,11 +43,21 @@ namespace RPTToSpreadsheet
                 Console.WriteLine("Press enter to continue");
                 Console.ReadKey();
                 SpreadSheet spreadSheet = new SpreadSheet();
-                await spreadSheet.CreateSpreadsheet(controls, fileName);
+                FileInfo file = await spreadSheet.CreateSpreadsheet(controls, fileName);
 
                 Console.WriteLine("Spreadsheet created in your output folder");
-                
-                Console.ReadKey();
+                Console.WriteLine("Would you like to open, press enter for yes, space for no");
+
+                if(Console.ReadKey().Key == ConsoleKey.Enter)
+                {
+                    Console.WriteLine("Opening Spreadsheet");
+                    Process.Start(new ProcessStartInfo
+                {
+                    FileName = file.FullName,
+                    UseShellExecute = true
+                });
+                }
+                await Main(Array.Empty<string>());
             }
             catch (IOException e)
             {

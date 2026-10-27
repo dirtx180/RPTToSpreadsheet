@@ -1,4 +1,5 @@
 using OfficeOpenXml;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace RPTToSpreadsheet
@@ -11,7 +12,7 @@ namespace RPTToSpreadsheet
             Console.WriteLine("Enter the path to the .rpt file you want to convert:");
             string? filePath = Console.ReadLine();
             //for testing purposes only
-            
+            filePath = "C:\\Users\\conor\\OneDrive\\Documents\\GitHub\\RPTToSpreadsheet\\RPTToSpreadsheet\\Test Resources\\Input\\MATOPT (1)(1).rpt";
             if (string.IsNullOrWhiteSpace(filePath) ||
                 !string.Equals(Path.GetExtension(filePath), ".rpt", StringComparison.OrdinalIgnoreCase) ||
                 !File.Exists(filePath))
@@ -33,7 +34,7 @@ namespace RPTToSpreadsheet
                     Console.WriteLine("Name: " + control.Name);
                     Console.WriteLine("Prompt: " + control.Prompt);
                     Console.WriteLine("SQLPath: " + control.SQLPath);
-                    Console.WriteLine("Script: " + control.Script);
+                    Console.WriteLine("Script: \n" + control.Script);
                 }
 
                 Console.WriteLine($"Parsed {controls.Count} controls:");
@@ -43,6 +44,7 @@ namespace RPTToSpreadsheet
                 await spreadSheet.CreateSpreadsheet(controls, fileName);
 
                 Console.WriteLine("Spreadsheet created in your output folder");
+                
                 Console.ReadKey();
             }
             catch (IOException e)

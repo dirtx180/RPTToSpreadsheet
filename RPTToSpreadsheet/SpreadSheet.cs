@@ -43,17 +43,26 @@ namespace RPTToSpreadsheet
                 var range = ws.Cells["A1"].LoadFromCollection(controls, true);
                 
                 //Styling
+                range.Style.Font.Size = 16;
+                range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                 ws.Row(1).Style.Font.Size = 24;
                 ws.Row(1).Style.Font.Bold = true;
+                ws.Row(2).Style.Font.Bold = true;
                 ws.Column(5).Style.WrapText = true;
                 ws.Column(5).Width = 300;
+                ws.Column(5).Style.Font.Name = "Consolas";
+                ws.Column(5).Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                 ws.Row(1).Style.Fill.PatternType = ExcelFillStyle.Solid;
                 ws.Row(1).Style.Fill.BackgroundColor.SetColor(Color.LightGreen);
-                range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                ws.Row(2).Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Row(2).Style.Fill.BackgroundColor.SetColor(Color.PaleVioletRed);
+                range.Style.Border.Top.Style = ExcelBorderStyle.Medium;
+                range.Style.Border.Bottom.Style = ExcelBorderStyle.Medium;
+                range.Style.Border.Left.Style = ExcelBorderStyle.Medium;
+                range.Style.Border.Right.Style = ExcelBorderStyle.Medium;
                 range.AutoFitColumns();
+                
 
 
                 await package.SaveAsync();

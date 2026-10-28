@@ -14,13 +14,13 @@ namespace RPTToSpreadsheet
             Console.WriteLine("Enter the path to the .rpt file you want to convert:");
             string? filePath = Console.ReadLine();
             //for testing purposes only
-            filePath = "C:\\Users\\conor\\OneDrive\\Documents\\GitHub\\RPTToSpreadsheet\\RPTToSpreadsheet\\Test Resources\\Input\\MATOPT (1)(1).rpt";
+            //filePath = "C:\\Users\\conor\\OneDrive\\Documents\\GitHub\\RPTToSpreadsheet\\RPTToSpreadsheet\\Test Resources\\Input\\MATOPT (1)(1).rpt";
             if (string.IsNullOrWhiteSpace(filePath) ||
                 !string.Equals(Path.GetExtension(filePath), ".rpt", StringComparison.OrdinalIgnoreCase) ||
                 !File.Exists(filePath))
             {
                 Console.WriteLine("Error: Invalid file path. Enter the path to an existing .rpt file.");
-                return;
+                await Main(Array.Empty<string>());
             }
 
             string fileName = Path.GetFileName(filePath);
@@ -45,19 +45,19 @@ namespace RPTToSpreadsheet
                 SpreadSheet spreadSheet = new SpreadSheet();
                 var saveDirectory = await spreadSheet.CreateFiles(controls, fileName);
 
-                Console.WriteLine("Spreadsheet created in your output folder");
-                Console.WriteLine("Would you like to open, press enter for yes, space for no");
+                Console.WriteLine("CSV and HTML files created in your output folder");
+                Console.WriteLine("Would you like to open the output folder? Press enter for yes, space for no");
 
                 if(Console.ReadKey().Key == ConsoleKey.Enter)
                 {
-                    Console.WriteLine("Opening Spreadsheet");
+                    Console.WriteLine("Opening Folder");
                     Process.Start(new ProcessStartInfo
                 {
                     FileName = saveDirectory.FullName,
                     UseShellExecute = true
                 });
                 }
-                await Main(Array.Empty<string>());
+                
             }
             catch (IOException e)
             {
@@ -75,7 +75,7 @@ namespace RPTToSpreadsheet
             {
                 Console.WriteLine($"Error: Could not decode an RPT field: {e.Message}");
             }
-
+            await Main(Array.Empty<string>());
         }
     }
 }

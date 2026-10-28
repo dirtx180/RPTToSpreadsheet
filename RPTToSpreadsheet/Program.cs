@@ -1,4 +1,4 @@
-using OfficeOpenXml;
+
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -10,7 +10,7 @@ namespace RPTToSpreadsheet
     {
         static async Task Main(string[] args)
         {
-
+            Console.WriteLine("");
             Console.WriteLine("Enter the path to the .rpt file you want to convert:");
             string? filePath = Console.ReadLine();
             //for testing purposes only
@@ -43,7 +43,7 @@ namespace RPTToSpreadsheet
                 Console.WriteLine("Press enter to continue");
                 Console.ReadKey();
                 SpreadSheet spreadSheet = new SpreadSheet();
-                FileInfo file = await spreadSheet.CreatePSVFile(controls, fileName);
+                var saveDirectory = await spreadSheet.CreateFiles(controls, fileName);
 
                 Console.WriteLine("Spreadsheet created in your output folder");
                 Console.WriteLine("Would you like to open, press enter for yes, space for no");
@@ -53,7 +53,7 @@ namespace RPTToSpreadsheet
                     Console.WriteLine("Opening Spreadsheet");
                     Process.Start(new ProcessStartInfo
                 {
-                    FileName = file.FullName,
+                    FileName = saveDirectory.FullName,
                     UseShellExecute = true
                 });
                 }

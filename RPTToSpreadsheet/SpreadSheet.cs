@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -28,6 +27,8 @@ namespace RPTToSpreadsheet
             var htmlFile = await CreateHTMLFile(controls, fileName, resultDirectory.FullName);
             var psvFile = await CreatePSVFile(controls, fileName, resultDirectory.FullName);
 
+            return resultDirectory;
+
         }
         public async Task<FileInfo> CreateHTMLFile(List<Control> controls, string fileName, string saveDirectory)
         {
@@ -43,10 +44,17 @@ namespace RPTToSpreadsheet
                 file.Delete();
             }
             var table = Table<Control>.Add(controls);
-
+            
             await using (var stream = File.CreateText(file.FullName))
             {
-                table.WriteHtml(stream);
+                await stream.WriteLineAsync("<style>td { text-align: left !important; }</style>");
+                table.ColumnContentTextJustification(new Dictionary<string, TextJustification>{
+                {"ControlName", TextJustification.Left },
+                {"Name", TextJustification.Left },
+                {"Prompt", TextJustification.Left },
+                {"SQLPath", TextJustification.Left },
+                {"Script", TextJustification.Left }
+            }).WriteHtml(stream);
             }
 
             return file;
@@ -77,7 +85,7 @@ namespace RPTToSpreadsheet
 
             await using (var stream = File.CreateText(file.FullName))
             {
-                table.WriteMarkdown(stream);
+                table.WriteCsv(stream);
             }
 
             return file;

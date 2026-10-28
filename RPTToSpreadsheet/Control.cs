@@ -6,10 +6,10 @@ namespace RPTToSpreadsheet
 {
     public class Control
     {
-        public string? ControlName { get; set; }
-        public string? Name { get; set; }
-        public string? Prompt { get; set; }
-        public string? SQLPath { get; set; }
-        public string? Script { get; set; }
+        public string? ControlName { get; set; } = "N/A";
+        public string? Name { get; set; } = "N/A";
+        public string? Prompt { get; set; } = "N/A";
+        public string? SQLPath { get; set; } = "N/A";
+        public string? Script { get; set; } = "N/A";
     }
 }

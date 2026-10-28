@@ -4,7 +4,9 @@ using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using table.lib;
 
 namespace RPTToSpreadsheet
 {
@@ -15,62 +17,70 @@ namespace RPTToSpreadsheet
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
 
-        public async Task<FileInfo> CreateSpreadsheet(List<Control> controls, string fileName)
+        public async Task<DirectoryInfo> CreateFiles(List<Control> controls, string fileName)
         {
-            ExcelPackage.License.SetNonCommercialPersonal("Dirt");
-            
-            string saveDirectory = _config["Config:OutputPath"];
+            string? saveDirectory = _config["Config:OutputPath"];
+            if (string.IsNullOrWhiteSpace(saveDirectory))
+            {
+                throw new InvalidOperationException("Config:OutputPath is missing from appsettings.json.");
+            }
+            var resultDirectory = Directory.CreateDirectory(Path.Combine(saveDirectory, fileName.Replace(".rpt", "")));
+            var htmlFile = await CreateHTMLFile(controls, fileName, resultDirectory.FullName);
+            var psvFile = await CreatePSVFile(controls, fileName, resultDirectory.FullName);
 
-            
-
-            fileName = fileName.Replace(".rpt", ".xlsx");
-            var file = new FileInfo(saveDirectory + "\\" + fileName);
-
-            await SaveExcelFile(controls, file);
-
-            return file;
         }
-
-        private static async Task SaveExcelFile(List<Control> controls, FileInfo file)
+        public async Task<FileInfo> CreateHTMLFile(List<Control> controls, string fileName, string saveDirectory)
         {
+            
+
+            fileName = fileName.Replace(".rpt", ".html");
+            
+            var file = new FileInfo(Path.Combine(saveDirectory, fileName));
+
+
             if (file.Exists)
             {
                 file.Delete();
             }
-            string worksheetName = file.Name.Replace(".xlsx", "") + " Documentation";
-            using (var package = new ExcelPackage(file))
+            var table = Table<Control>.Add(controls);
+
+            await using (var stream = File.CreateText(file.FullName))
             {
-                var ws = package.Workbook.Worksheets.Add(worksheetName);
-
-                var range = ws.Cells["A1"].LoadFromCollection(controls, true);
-                
-                //Styling
-                range.Style.Font.Size = 16;
-                range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                ws.Row(1).Style.Font.Size = 24;
-                ws.Row(1).Style.Font.Bold = true;
-                ws.Row(2).Style.Font.Bold = true;
-                ws.Column(5).Style.WrapText = true;
-                ws.Column(5).Width = 300;
-                ws.Column(5).Style.Font.Name = "Consolas";
-                ws.Column(5).Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-                ws.Row(1).Style.Fill.PatternType = ExcelFillStyle.Solid;
-                ws.Row(1).Style.Fill.BackgroundColor.SetColor(Color.LightGreen);
-                ws.Row(2).Style.Fill.PatternType = ExcelFillStyle.Solid;
-                ws.Row(2).Style.Fill.BackgroundColor.SetColor(Color.PaleVioletRed);
-                range.Style.Border.Top.Style = ExcelBorderStyle.Medium;
-                range.Style.Border.Bottom.Style = ExcelBorderStyle.Medium;
-                range.Style.Border.Left.Style = ExcelBorderStyle.Medium;
-                range.Style.Border.Right.Style = ExcelBorderStyle.Medium;
-                range.AutoFitColumns();
-                
-
-
-                await package.SaveAsync();
-
-                
+                table.WriteHtml(stream);
             }
-        }  
+
+            return file;
+        }
+        public async Task<FileInfo> CreatePSVFile(List<Control> controls, string fileName, string saveDirectory)
+        {
+
+            fileName = fileName.Replace(".rpt", ".csv");
+            Directory.CreateDirectory(saveDirectory);
+            var file = new FileInfo(Path.Combine(saveDirectory, fileName));
+
+            if (file.Exists)
+            {
+                file.Delete();
+            }
+
+            foreach (var control in controls)
+            {
+                if (control.Script != null)
+                {
+                    control.Script = control.Script.Replace("\r\n", @"~");
+                    control.Script = "\"" + control.Script + "\"";
+                }
+            }
+
+
+            var table = Table<Control>.Add(controls);
+
+            await using (var stream = File.CreateText(file.FullName))
+            {
+                table.WriteMarkdown(stream);
+            }
+
+            return file;
+        }
     }
 }

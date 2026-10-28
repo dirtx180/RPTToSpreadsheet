@@ -43,7 +43,7 @@ namespace RPTToSpreadsheet
                 Console.WriteLine("Press enter to continue");
                 Console.ReadKey();
                 SpreadSheet spreadSheet = new SpreadSheet();
-                FileInfo file = await spreadSheet.CreateSpreadsheet(controls, fileName);
+                FileInfo file = await spreadSheet.CreatePSVFile(controls, fileName);
 
                 Console.WriteLine("Spreadsheet created in your output folder");
                 Console.WriteLine("Would you like to open, press enter for yes, space for no");

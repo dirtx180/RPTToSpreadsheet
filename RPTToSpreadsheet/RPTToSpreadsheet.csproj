@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="8.7.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.14" />
+    <PackageReference Include="table.lib" Version="1.20.0" />
   </ItemGroup>
 
   <ItemGroup>

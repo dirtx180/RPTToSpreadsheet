@@ -4,7 +4,7 @@
     <BuildType Name="Release" />
     <BuildType Name="Test" />
   </Configurations>
-  <Project Path="RPTToSpreadsheet/RPTToSpreadsheet.csproj">
+  <Project Path="RPTToSpreadsheet/CMSFormAnalyser.csproj">
     <Platform Solution="Test|*" Project="x64" />
   </Project>
 </Solution>

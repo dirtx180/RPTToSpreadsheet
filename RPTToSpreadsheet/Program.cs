@@ -1,6 +1,5 @@
 
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 
@@ -23,7 +22,9 @@ namespace RPTToSpreadsheet
                 await Main(Array.Empty<string>());
             }
 
-            string fileName = Path.GetFileName(filePath);
+            FileInfo file = new FileInfo(filePath);
+
+
 
             try
             {
@@ -43,21 +44,21 @@ namespace RPTToSpreadsheet
                 Console.WriteLine("Press enter to continue");
                 Console.ReadKey();
                 SpreadSheet spreadSheet = new SpreadSheet();
-                var saveDirectory = await spreadSheet.CreateFiles(controls, fileName);
+                var saveDirectory = await spreadSheet.CreateFiles(controls, file);
 
-                Console.WriteLine("CSV and HTML files created in your output folder");
-                Console.WriteLine("Would you like to open the output folder? Press enter for yes, space for no");
+                Console.WriteLine("CSV and HTML files created");
+                Console.WriteLine("Would you like to open the files in file explorer? Press enter for yes, space for no");
 
-                if(Console.ReadKey().Key == ConsoleKey.Enter)
+                if (Console.ReadKey().Key == ConsoleKey.Enter)
                 {
                     Console.WriteLine("Opening Folder");
                     Process.Start(new ProcessStartInfo
-                {
-                    FileName = saveDirectory.FullName,
-                    UseShellExecute = true
-                });
+                    {
+                        FileName = saveDirectory.FullName,
+                        UseShellExecute = true
+                    });
                 }
-                
+
             }
             catch (IOException e)
             {

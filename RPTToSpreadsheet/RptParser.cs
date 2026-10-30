@@ -31,8 +31,9 @@ namespace RPTToSpreadsheet
                     for (; lineIndex < lines.Length; lineIndex++)
                     {
                         string line = lines[lineIndex];
-                        if (line == "CloseAction=1")
+                        if (ControlHeader.IsMatch(line))
                         {
+                            lineIndex--;
                             mainControlCaptured = true;
                             break;
                         }
@@ -97,8 +98,9 @@ namespace RPTToSpreadsheet
                 {
                     string line = lines[lineIndex].Trim();
                     //Check to see if the Control block has finished
-                    if (line == "}")
+                    if (ControlHeader.IsMatch(line) || lineIndex == lines.Length - 1)
                     {
+                        lineIndex--;
                         closed = true;
                         break;
                     }

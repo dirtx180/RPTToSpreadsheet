@@ -4,6 +4,10 @@
     <BuildType Name="Release" />
     <BuildType Name="Test" />
   </Configurations>
+  <Project Path="CMSFA_Installer/CMSFA_Installer.vdproj" Type="Installer">
+    <BuildType Solution="Test|*" Project="Release" />
+    <Build Solution="Test|*" />
+  </Project>
   <Project Path="RPTToSpreadsheet/CMSFormAnalyser.csproj">
     <Platform Solution="Test|*" Project="x64" />
   </Project>
